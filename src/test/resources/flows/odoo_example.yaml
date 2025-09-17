@@ -9,7 +9,7 @@ tasks:
   username: demo
   password: demo
   model: res.partner
-  operation: search_read
+  operation: SEARCH_READ
   filters:
     - ["is_company", "=", true]
     - ["customer_rank", ">", 0]
@@ -23,6 +23,6 @@ tasks:
   username: demo
   password: demo
   model: res.users
-  operation: search_count
+  operation: SEARCH_COUNT
   filters:
     - ["active", "=", true]

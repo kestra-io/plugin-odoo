@@ -1,8 +1,15 @@
 package io.kestra.plugin.odoo;
 
+import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
+import io.kestra.core.models.tasks.common.FetchType;
+import io.kestra.core.runners.RunContext;
+import io.kestra.core.runners.RunContextFactory;
+import io.kestra.core.utils.TestsUtils;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.util.*;
 
@@ -10,20 +17,29 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+@KestraTest
 class SimpleQueryTest {
 
+    @Inject
+    private RunContextFactory runContextFactory;
+
     private Query task;
+    private RunContext runContext;
 
     @BeforeEach
     void setUp() {
         task = Query.builder()
-            .url(Property.ofValue("https://test-odoo.com"))
-            .db(Property.ofValue("test_db"))
-            .username(Property.ofValue("test_user"))
-            .password(Property.ofValue("test_password"))
+            .id("test-task")
+            .type(Query.class.getName())
+            .url(Property.ofValue("https://demo.odoo.com"))
+            .db(Property.ofValue("demo"))
+            .username(Property.ofValue("demo"))
+            .password(Property.ofValue("demo"))
             .model(Property.ofValue("res.partner"))
-            .operation(Property.ofValue("search_read"))
+            .operation(Property.ofValue(Operation.SEARCH_READ))
             .build();
+
+        runContext = TestsUtils.mockRunContext(runContextFactory, task, Map.of());
     }
 
     @Test
@@ -37,18 +53,6 @@ class SimpleQueryTest {
         assertThat(task.getOperation(), is(notNullValue()));
     }
 
-    @Test
-    void shouldCreateTaskWithDefaultOperation() {
-        Query defaultTask = Query.builder()
-            .url(Property.ofValue("https://test-odoo.com"))
-            .db(Property.ofValue("test_db"))
-            .username(Property.ofValue("test_user"))
-            .password(Property.ofValue("test_password"))
-            .model(Property.ofValue("res.partner"))
-            .build();
-
-        assertThat(defaultTask.getOperation(), is(notNullValue()));
-    }
 
     @Test
     void shouldCreateTaskWithOptionalProperties() {
@@ -57,12 +61,14 @@ class SimpleQueryTest {
         Map<String, Object> values = Map.of("name", "Test Partner");
 
         Query fullTask = Query.builder()
+            .id("full-task")
+            .type(Query.class.getName())
             .url(Property.ofValue("https://test-odoo.com"))
             .db(Property.ofValue("test_db"))
             .username(Property.ofValue("test_user"))
             .password(Property.ofValue("test_password"))
             .model(Property.ofValue("res.partner"))
-            .operation(Property.ofValue("create"))
+            .operation(Property.ofValue(Operation.CREATE))
             .fields(Property.ofValue(fields))
             .ids(Property.ofValue(ids))
             .values(Property.ofValue(values))
@@ -86,12 +92,14 @@ class SimpleQueryTest {
         );
 
         Query taskWithFilters = Query.builder()
+            .id("filter-task")
+            .type(Query.class.getName())
             .url(Property.ofValue("https://test-odoo.com"))
             .db(Property.ofValue("test_db"))
             .username(Property.ofValue("test_user"))
             .password(Property.ofValue("test_password"))
             .model(Property.ofValue("res.partner"))
-            .operation(Property.ofValue("search_read"))
+            .operation(Property.ofValue(Operation.SEARCH_READ))
             .filters(Property.ofValue(filters))
             .build();
 
@@ -101,19 +109,95 @@ class SimpleQueryTest {
 
     @Test
     void shouldSupportAllOperations() {
-        String[] supportedOps = {"search_read", "create", "write", "unlink", "search", "search_count"};
+        Operation[] supportedOps = {Operation.SEARCH_READ, Operation.READ, Operation.CREATE, Operation.WRITE, Operation.UNLINK, Operation.SEARCH, Operation.SEARCH_COUNT};
 
-        for (String operation : supportedOps) {
+        for (Operation operation : supportedOps) {
             Query opTask = Query.builder()
-                .url(Property.ofValue("https://test-odoo.com"))
-                .db(Property.ofValue("test_db"))
-                .username(Property.ofValue("test_user"))
-                .password(Property.ofValue("test_password"))
+                .id("op-task-" + operation.getValue())
+                .type(Query.class.getName())
+                .url(Property.ofValue("https://demo.odoo.com"))
+                .db(Property.ofValue("demo"))
+                .username(Property.ofValue("demo"))
+                .password(Property.ofValue("demo"))
                 .model(Property.ofValue("res.partner"))
                 .operation(Property.ofValue(operation))
                 .build();
 
             assertThat(opTask.getOperation(), is(notNullValue()));
+        }
+    }
+
+    @Test
+    @EnabledIfEnvironmentVariable(named = "ODOO_INTEGRATION_TESTS", matches = "true")
+    void shouldExecuteSearchCountAndReturnValidOutput() throws Exception {
+        Query countTask = Query.builder()
+            .id("count-task")
+            .type(Query.class.getName())
+            .url(Property.ofValue("https://demo.odoo.com"))
+            .db(Property.ofValue("demo"))
+            .username(Property.ofValue("demo"))
+            .password(Property.ofValue("demo"))
+            .model(Property.ofValue("res.users"))
+            .operation(Property.ofValue(Operation.SEARCH_COUNT))
+            .build();
+
+        RunContext taskRunContext = TestsUtils.mockRunContext(runContextFactory, countTask, Map.of());
+
+        // Execute the task and assert on output values
+        Query.Output output = countTask.run(taskRunContext);
+
+        // Assert on actual execution results
+        assertThat(output, is(notNullValue()));
+        assertThat(output.getSize(), is(notNullValue()));
+        assertThat(output.getSize(), is(greaterThan(0L)));
+
+        // For SEARCH_COUNT, result is in size field, no row/rows data
+        assertThat(output.getRow(), is(nullValue()));
+        assertThat(output.getRows(), is(nullValue()));
+        assertThat(output.getUri(), is(nullValue()));
+    }
+
+    @Test
+    @EnabledIfEnvironmentVariable(named = "ODOO_INTEGRATION_TESTS", matches = "true")
+    void shouldExecuteSearchReadAndReturnValidOutput() throws Exception {
+        Query searchTask = Query.builder()
+            .id("search-task")
+            .type(Query.class.getName())
+            .url(Property.ofValue("https://demo.odoo.com"))
+            .db(Property.ofValue("demo"))
+            .username(Property.ofValue("demo"))
+            .password(Property.ofValue("demo"))
+            .model(Property.ofValue("res.partner"))
+            .operation(Property.ofValue(Operation.SEARCH_READ))
+            .fields(Property.ofValue(Arrays.asList("name")))
+            .limit(Property.ofValue(2))
+            .fetchType(Property.ofValue(FetchType.FETCH))
+            .build();
+
+        RunContext taskRunContext = TestsUtils.mockRunContext(runContextFactory, searchTask, Map.of());
+
+        // Execute the task and assert on output values
+        Query.Output output = searchTask.run(taskRunContext);
+
+        // Assert on actual execution results
+        assertThat(output, is(notNullValue()));
+        assertThat(output.getRows(), is(notNullValue()));
+        assertThat(output.getSize(), is(greaterThan(0L)));
+
+        // For FETCH type, result is in rows field
+        List<Map<String, Object>> records = output.getRows();
+        assertThat(records.size(), is(lessThanOrEqualTo(2))); // Respects limit
+        assertThat(output.getSize(), is(equalTo((long) records.size())));
+
+        // Other fields should be null for FETCH type
+        assertThat(output.getRow(), is(nullValue()));
+        assertThat(output.getUri(), is(nullValue()));
+
+        if (!records.isEmpty()) {
+            // Verify first record structure
+            Map<String, Object> firstRecord = records.get(0);
+            assertTrue(firstRecord.containsKey("id"));
+            assertTrue(firstRecord.containsKey("name"));
         }
     }
 }

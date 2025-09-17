@@ -21,8 +21,8 @@ public class OdooClient {
     private final String database;
     private final String username;
     private final String password;
-    private final XmlRpcClient commonClient;
     private final XmlRpcClient objectClient;
+    private final OdooAuthenticator authenticator;
     private Integer uid;
 
     public OdooClient(String url, String database, String username, String password) throws MalformedURLException {
@@ -31,11 +31,8 @@ public class OdooClient {
         this.username = username;
         this.password = password;
 
-        // Initialize common endpoint client for authentication
-        this.commonClient = new XmlRpcClient();
-        XmlRpcClientConfigImpl commonConfig = new XmlRpcClientConfigImpl();
-        commonConfig.setServerURL(new URL(String.format("%s/xmlrpc/2/common", url)));
-        this.commonClient.setConfig(commonConfig);
+        // Initialize authenticator
+        this.authenticator = new OdooAuthenticator(url, database, username, password);
 
         // Initialize object endpoint client for model operations
         this.objectClient = new XmlRpcClient();
@@ -50,25 +47,7 @@ public class OdooClient {
      * @throws Exception if authentication fails
      */
     public void authenticate() throws Exception {
-        log.debug("Authenticating with Odoo server: {}", url);
-
-        try {
-            Object result = commonClient.execute("authenticate", Arrays.asList(
-                database, username, password, Collections.emptyMap()
-            ));
-
-            if (result instanceof Integer) {
-                this.uid = (Integer) result;
-                log.debug("Authentication successful, user ID: {}", uid);
-            } else if (result == Boolean.FALSE) {
-                throw new IllegalArgumentException("Authentication failed: Invalid credentials");
-            } else {
-                throw new IllegalArgumentException("Authentication failed: Unexpected response");
-            }
-        } catch (Exception e) {
-            log.error("Authentication failed for user '{}' on database '{}': {}", username, database, e.getMessage());
-            throw new Exception("Failed to authenticate with Odoo: " + e.getMessage(), e);
-        }
+        this.uid = authenticator.authenticate();
     }
 
     /**
@@ -77,10 +56,8 @@ public class OdooClient {
      * @return Map containing version information
      * @throws Exception if version check fails
      */
-    @SuppressWarnings("unchecked")
     public Map<String, Object> getVersion() throws Exception {
-        log.debug("Getting Odoo server version");
-        return (Map<String, Object>) commonClient.execute("version", Collections.emptyList());
+        return authenticator.getVersion();
     }
 
     /**
@@ -207,6 +184,26 @@ public class OdooClient {
         }
 
         return executeKw(model, "search", args, kwargs.isEmpty() ? null : kwargs);
+    }
+
+    /**
+     * Read specific fields for records with known IDs.
+     *
+     * @param model The Odoo model name
+     * @param ids The IDs of records to read
+     * @param fields The fields to read (optional)
+     * @return List of records with requested fields
+     * @throws Exception if the operation fails
+     */
+    public Object read(String model, List<Integer> ids, List<String> fields) throws Exception {
+        List<Object> args = Arrays.asList(ids);
+
+        Map<String, Object> kwargs = new java.util.HashMap<>();
+        if (fields != null && !fields.isEmpty()) {
+            kwargs.put("fields", fields);
+        }
+
+        return executeKw(model, "read", args, kwargs.isEmpty() ? null : kwargs);
     }
 
     /**
