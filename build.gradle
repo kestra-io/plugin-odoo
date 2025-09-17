@@ -17,7 +17,7 @@ repositories {
     mavenLocal()
     mavenCentral()
     if (isBuildSnapshot) {
-        maven { url "https://central.sonatype.com/repository/maven-snapshots/" }
+        maven { url = "https://central.sonatype.com/repository/maven-snapshots/" }
     }
 }
 
@@ -29,7 +29,7 @@ java {
 }
 
 group = "io.kestra.plugin"
-description = 'Plugin template for Kestra'
+description = 'Odoo plugin for Kestra'
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
@@ -49,6 +49,9 @@ dependencies {
     annotationProcessor group: "io.kestra", name: "processor", version: kestraVersion
     compileOnly group: "io.kestra", name: "core", version: kestraVersion
     compileOnly group: "io.kestra", name: "script", version: kestraVersion
+
+    // XML-RPC client for Odoo API
+    implementation 'org.apache.xmlrpc:xmlrpc-client:3.1.3'
 }
 
 
@@ -174,9 +177,9 @@ tasks.withType(GenerateModuleMetadata).configureEach {
 jar {
     manifest {
         attributes(
-                "X-Kestra-Name": project.name,
-                "X-Kestra-Title": "Template",
-                "X-Kestra-Group": project.group + ".templates",
+                "X-Kestra-Name": "kestra-plugin-odoo",
+                "X-Kestra-Title": "Odoo",
+                "X-Kestra-Group": project.group + ".odoo",
                 "X-Kestra-Description": project.description,
                 "X-Kestra-Version": project.version
         )

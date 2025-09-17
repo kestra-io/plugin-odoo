@@ -1,13 +1,28 @@
-id: example
-namespace: io.kestra.templates
+id: odoo_example
+namespace: io.kestra.plugin.odoo
 
 tasks:
-- id: date
-  type: io.kestra.plugin.templates.Example
-  format: "{{taskrun.startDate}}"
-- id: task-id
-  type: io.kestra.plugin.templates.Example
-  format: "{{task.id}}"
-- id: flow-id
-  type: io.kestra.plugin.templates.Example
-  format: "{{outputs['task-id'].child.value}}"
+- id: query_partners
+  type: io.kestra.plugin.odoo.Query
+  url: https://demo.odoo.com
+  db: demo
+  username: demo
+  password: demo
+  model: res.partner
+  operation: search_read
+  filters:
+    - ["is_company", "=", true]
+    - ["customer_rank", ">", 0]
+  fields: ["name", "email", "phone"]
+  limit: 5
+
+- id: count_users
+  type: io.kestra.plugin.odoo.Query
+  url: https://demo.odoo.com
+  db: demo
+  username: demo
+  password: demo
+  model: res.users
+  operation: search_count
+  filters:
+    - ["active", "=", true]
