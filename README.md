@@ -33,39 +33,130 @@
 <p align="center" style="color:grey;"><i>Get started with Kestra in 4 minutes.</i></p>
 
 
-# Kestra Plugin Template
+# Kestra Odoo Plugin
 
-> A template for creating Kestra plugins
+> Integrate with Odoo ERP system via XML-RPC API
 
-This repository serves as a general template for creating a new [Kestra](https://github.com/kestra-io/kestra) plugin. It should take only a few minutes! Use this repository as a scaffold to ensure that you've set up the plugin correctly, including unit tests and CI/CD workflows.
+This plugin allows Kestra to interact with [Odoo](https://www.odoo.com/) ERP systems using the XML-RPC API. It provides tasks for querying, creating, updating, and deleting records in Odoo models, enabling seamless integration between your data workflows and Odoo business processes.
 
-![Kestra orchestrator](https://kestra.io/video.gif)
+## Features
 
-## Running the project in local
+- **Query Odoo Models**: Search and read records from any Odoo model using flexible domain filters
+- **Create Records**: Create new records in Odoo models with custom field values
+- **Update Records**: Modify existing records by ID with new field values
+- **Delete Records**: Remove records from Odoo models
+- **Count Records**: Get the count of records matching specific criteria
+- **Flexible Authentication**: Secure connection using username/password authentication
+- **Dynamic Properties**: Support for Kestra's templating engine in all parameters
+
+## Supported Operations
+
+| Operation | Description | Required Parameters |
+|-----------|-------------|-------------------|
+| `search_read` | Search and retrieve records | `model`, optional: `filters`, `fields`, `limit`, `offset` |
+| `create` | Create new records | `model`, `values` |
+| `write` | Update existing records | `model`, `ids`, `values` |
+| `unlink` | Delete records | `model`, `ids` |
+| `search` | Get record IDs matching criteria | `model`, optional: `filters`, `limit`, `offset` |
+| `search_count` | Count records matching criteria | `model`, optional: `filters` |
+
+## Quick Start
+
+### Basic Configuration
+
+All tasks require these basic connection parameters:
+
+```yaml
+url: https://your-odoo-instance.com  # Odoo server URL
+db: your_database                    # Database name
+username: your_username              # Odoo username
+password: your_password              # Odoo password
+model: res.partner                   # Odoo model to operate on
+```
+
+### Example: Query Partners
+
+```yaml
+id: query_partners
+type: io.kestra.plugin.odoo.Query
+url: https://my-odoo.com
+db: production
+username: api_user
+password: "{{ secret('ODOO_PASSWORD') }}"
+model: res.partner
+operation: search_read
+filters:
+  - ["is_company", "=", true]
+  - ["customer_rank", ">", 0]
+fields: ["name", "email", "phone", "country_id"]
+limit: 100
+```
+
+### Example: Create New Customer
+
+```yaml
+id: create_customer
+type: io.kestra.plugin.odoo.Query
+url: https://my-odoo.com
+db: production
+username: api_user
+password: "{{ secret('ODOO_PASSWORD') }}"
+model: res.partner
+operation: create
+values:
+  name: "Acme Corporation"
+  email: "contact@acme.com"
+  is_company: true
+  customer_rank: 1
+  supplier_rank: 0
+```
+
+### Example: Update Records
+
+```yaml
+id: update_partners
+type: io.kestra.plugin.odoo.Query
+url: https://my-odoo.com
+db: production
+username: api_user
+password: "{{ secret('ODOO_PASSWORD') }}"
+model: res.partner
+operation: write
+ids: [1, 2, 3]
+values:
+  category_id: [[6, 0, [1, 2]]]  # Odoo many2many format
+  active: true
+```
+
+## Installation
+
+Add this plugin to your Kestra instance:
+
+```bash
+./kestra plugins install io.kestra.plugin:plugin-odoo:LATEST
+```
+
+## Development
+
 ### Prerequisites
 - Java 21
 - Docker
 
 ### Running tests
-```
+```bash
 ./gradlew check --parallel
 ```
 
-### Development
+### Local Development
 
-`VSCode`:
+**VSCode**: Follow the README.md within the `.devcontainer` folder for development setup.
 
-Follow the README.md within the `.devcontainer` folder for a quick and easy way to get up and running with developing plugins if you are using VSCode.
-
-`Other IDEs`:
-
+**Other IDEs**:
+```bash
+./gradlew shadowJar && docker build -t kestra-odoo . && docker run --rm -p 8080:8080 kestra-odoo server local
 ```
-./gradlew shadowJar && docker build -t kestra-custom . && docker run --rm -p 8080:8080 kestra-custom server local
-```
-> [!NOTE]
-> You need to relaunch this whole command everytime you make a change to your plugin
 
-go to http://localhost:8080, your plugin will be available to use
+Visit http://localhost:8080 to test your plugin.
 
 ## Documentation
 * Full documentation can be found under: [kestra.io/docs](https://kestra.io/docs)
