@@ -67,11 +67,14 @@ This plugin allows Kestra to interact with [Odoo](https://www.odoo.com/) ERP sys
 All tasks require these basic connection parameters:
 
 ```yaml
-url: https://your-odoo-instance.com  # Odoo server URL
-db: your_database                    # Database name
-username: your_username              # Odoo username
-password: your_password              # Odoo password
-model: res.partner                   # Odoo model to operate on
+tasks:
+  - id: odoo
+    type: io.kestra.plugin.odoo.Query
+    url: https://your-odoo-instance.com  # Odoo server URL
+    db: your_database                    # Database name
+    username: your_username              # Odoo username
+    password: your_password              # Odoo password
+    model: res.partner                   # Odoo model to operate on
 ```
 
 ### Example: Query Partners
