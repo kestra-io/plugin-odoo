@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class SimpleQueryTest {
 
     @Inject
-    private RunContextFactory runContextFactory;
+    RunContextFactory runContextFactory;
 
     private Query task;
     private RunContext runContext;
@@ -133,10 +133,10 @@ class SimpleQueryTest {
         Query countTask = Query.builder()
             .id("count-task")
             .type(Query.class.getName())
-            .url(Property.ofValue("https://demo.odoo.com"))
+            .url(Property.ofValue("http://localhost:8069"))
             .db(Property.ofValue("demo"))
-            .username(Property.ofValue("demo"))
-            .password(Property.ofValue("demo"))
+            .username(Property.ofValue("test@demo.com"))
+            .password(Property.ofValue("admin"))
             .model(Property.ofValue("res.users"))
             .operation(Property.ofValue(Operation.SEARCH_COUNT))
             .build();
@@ -163,10 +163,10 @@ class SimpleQueryTest {
         Query searchTask = Query.builder()
             .id("search-task")
             .type(Query.class.getName())
-            .url(Property.ofValue("https://demo.odoo.com"))
+            .url(Property.ofValue("http://localhost:8069"))
             .db(Property.ofValue("demo"))
-            .username(Property.ofValue("demo"))
-            .password(Property.ofValue("demo"))
+            .username(Property.ofValue("test@demo.com"))
+            .password(Property.ofValue("admin"))
             .model(Property.ofValue("res.partner"))
             .operation(Property.ofValue(Operation.SEARCH_READ))
             .fields(Property.ofValue(Arrays.asList("name")))

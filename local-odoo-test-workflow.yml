@@ -1,0 +1,186 @@
+id: local_odoo_comprehensive_test
+namespace: io.kestra.plugin.odoo.test
+
+description: |
+  Comprehensive test workflow for Kestra Odoo plugin using local Docker instance.
+  This workflow demonstrates all major operations supported by the plugin.
+
+variables:
+  odoo_url: http://localhost:8069
+  odoo_db: demo
+  odoo_username: test@demo.com
+  odoo_password: admin
+
+tasks:
+  # Test 1: Count all partners
+  - id: count_all_partners
+    type: io.kestra.plugin.odoo.Query
+    url: "{{ vars.odoo_url }}"
+    db: "{{ vars.odoo_db }}"
+    username: "{{ vars.odoo_username }}"
+    password: "{{ vars.odoo_password }}"
+    model: res.partner
+    operation: SEARCH_COUNT
+    description: "Count total number of partners in the system"
+
+  # Test 2: Search and read company partners with filters
+  - id: query_company_partners
+    type: io.kestra.plugin.odoo.Query
+    url: "{{ vars.odoo_url }}"
+    db: "{{ vars.odoo_db }}"
+    username: "{{ vars.odoo_username }}"
+    password: "{{ vars.odoo_password }}"
+    model: res.partner
+    operation: SEARCH_READ
+    filters:
+      - ["is_company", "=", true]
+      - ["customer_rank", ">", 0]
+    fields: ["name", "email", "phone", "country_id", "website"]
+    limit: 10
+    description: "Get company partners with customer rank > 0"
+
+  # Test 3: Search for individual contacts
+  - id: query_individual_contacts
+    type: io.kestra.plugin.odoo.Query
+    url: "{{ vars.odoo_url }}"
+    db: "{{ vars.odoo_db }}"
+    username: "{{ vars.odoo_username }}"
+    password: "{{ vars.odoo_password }}"
+    model: res.partner
+    operation: SEARCH_READ
+    filters:
+      - ["is_company", "=", false]
+      - ["parent_id", "!=", false]
+    fields: ["name", "email", "parent_id", "function"]
+    limit: 5
+    description: "Get individual contacts with parent companies"
+
+  # Test 4: Get system users count
+  - id: count_active_users
+    type: io.kestra.plugin.odoo.Query
+    url: "{{ vars.odoo_url }}"
+    db: "{{ vars.odoo_db }}"
+    username: "{{ vars.odoo_username }}"
+    password: "{{ vars.odoo_password }}"
+    model: res.users
+    operation: SEARCH_COUNT
+    filters:
+      - ["active", "=", true]
+    description: "Count active system users"
+
+  # Test 5: Query product categories (if available)
+  - id: query_product_categories
+    type: io.kestra.plugin.odoo.Query
+    url: "{{ vars.odoo_url }}"
+    db: "{{ vars.odoo_db }}"
+    username: "{{ vars.odoo_username }}"
+    password: "{{ vars.odoo_password }}"
+    model: product.category
+    operation: SEARCH_READ
+    fields: ["name", "parent_id", "product_count"]
+    limit: 20
+    description: "Get product categories"
+
+  # Test 6: Create a new test partner
+  - id: create_test_partner
+    type: io.kestra.plugin.odoo.Query
+    url: "{{ vars.odoo_url }}"
+    db: "{{ vars.odoo_db }}"
+    username: "{{ vars.odoo_username }}"
+    password: "{{ vars.odoo_password }}"
+    model: res.partner
+    operation: CREATE
+    values:
+      name: "Kestra Test Company"
+      email: "test@kestra.io"
+      is_company: true
+      customer_rank: 1
+      supplier_rank: 0
+      website: "https://kestra.io"
+      comment: "Created by Kestra Odoo plugin test workflow"
+    description: "Create a test partner record"
+
+  # Test 7: Update the created partner
+  - id: update_test_partner
+    type: io.kestra.plugin.odoo.Query
+    url: "{{ vars.odoo_url }}"
+    db: "{{ vars.odoo_db }}"
+    username: "{{ vars.odoo_username }}"
+    password: "{{ vars.odoo_password }}"
+    model: res.partner
+    operation: WRITE
+    ids: ["{{ outputs.create_test_partner.ids[0] }}"]
+    values:
+      phone: "+1-555-KESTRA"
+      comment: "Updated by Kestra Odoo plugin test workflow"
+    description: "Update the test partner with phone number"
+
+  # Test 8: Read the updated partner
+  - id: read_updated_partner
+    type: io.kestra.plugin.odoo.Query
+    url: "{{ vars.odoo_url }}"
+    db: "{{ vars.odoo_db }}"
+    username: "{{ vars.odoo_username }}"
+    password: "{{ vars.odoo_password }}"
+    model: res.partner
+    operation: READ
+    ids: ["{{ outputs.create_test_partner.ids[0] }}"]
+    fields: ["name", "email", "phone", "website", "comment", "create_date", "write_date"]
+    description: "Read the updated test partner"
+
+  # Test 9: Search for countries
+  - id: query_countries
+    type: io.kestra.plugin.odoo.Query
+    url: "{{ vars.odoo_url }}"
+    db: "{{ vars.odoo_db }}"
+    username: "{{ vars.odoo_username }}"
+    password: "{{ vars.odoo_password }}"
+    model: res.country
+    operation: SEARCH_READ
+    fields: ["name", "code"]
+    limit: 10
+    description: "Get list of countries"
+
+  # Test 10: Clean up - Delete the test partner
+  - id: delete_test_partner
+    type: io.kestra.plugin.odoo.Query
+    url: "{{ vars.odoo_url }}"
+    db: "{{ vars.odoo_db }}"
+    username: "{{ vars.odoo_username }}"
+    password: "{{ vars.odoo_password }}"
+    model: res.partner
+    operation: UNLINK
+    ids: ["{{ outputs.create_test_partner.ids[0] }}"]
+    description: "Delete the test partner record"
+
+  # Test 11: Verify deletion
+  - id: verify_partner_deleted
+    type: io.kestra.plugin.odoo.Query
+    url: "{{ vars.odoo_url }}"
+    db: "{{ vars.odoo_db }}"
+    username: "{{ vars.odoo_username }}"
+    password: "{{ vars.odoo_password }}"
+    model: res.partner
+    operation: SEARCH_COUNT
+    filters:
+      - ["id", "=", "{{ outputs.create_test_partner.ids[0] }}"]
+    description: "Verify the test partner was deleted (should return 0)"
+
+triggers:
+  - id: manual_trigger
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 0 * * *"  # Daily at midnight (disabled by default)
+    disabled: true
+
+outputs:
+  - id: test_summary
+    type: io.kestra.plugin.core.log.Log
+    message: |
+      Odoo Plugin Test Summary:
+      - Total Partners: {{ outputs.count_all_partners.count }}
+      - Company Partners Found: {{ outputs.query_company_partners.records | length }}
+      - Individual Contacts Found: {{ outputs.query_individual_contacts.records | length }}
+      - Active Users: {{ outputs.count_active_users.count }}
+      - Test Partner Created: {{ outputs.create_test_partner.ids[0] }}
+      - Test Partner Deleted: {{ outputs.verify_partner_deleted.count == 0 ? 'Success' : 'Failed' }}
+      - Countries Available: {{ outputs.query_countries.records | length }}

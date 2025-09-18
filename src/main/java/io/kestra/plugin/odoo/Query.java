@@ -13,6 +13,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.slf4j.Logger;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -31,8 +32,8 @@ import java.util.Map;
 @Plugin(
     examples = {
         @Example(
-            title = "Search and read company partners",
             full = true,
+            title = "Search and read company partners.",
             code = """
                 id: odoo_query_partners
                 namespace: company.team
@@ -56,28 +57,7 @@ import java.util.Map;
         ),
         @Example(
             full = true,
-            title = "Read specific partner records",
-            code = """
-                id: read_partners
-                namespace: company.team
-
-                tasks:
-                  - id: read_partners
-                    type: io.kestra.plugin.odoo.Query
-                    url: https://my-odoo-instance.com
-                    db: my-database
-                    username: user@example.com
-                    password: "{{ secret('ODOO_PASSWORD') }}"
-                    model: res.partner
-                    operation: READ
-                    ids: [1, 2, 3]
-                    fields: ["name", "email", "phone", "city"]
-                    fetchType: FETCH
-                """
-        ),
-        @Example(
-            full = true,
-            title = "Create a new partner",
+            title = "Create a new partner.",
             code = """
                 id: create_partner
                 namespace: company.team
@@ -92,14 +72,15 @@ import java.util.Map;
                     model: res.partner
                     operation: CREATE
                     values:
-                      name: "New Partner"
-                      email: "partner@example.com"
+                      name: "Acme Corporation"
+                      email: "contact@acme.com"
                       is_company: true
+                      customer_rank: 1
                 """
         ),
         @Example(
             full = true,
-            title = "Update existing partners",
+            title = "Update existing partners.",
             code = """
                 id: update_partners
                 namespace: company.team
@@ -115,27 +96,8 @@ import java.util.Map;
                     operation: WRITE
                     ids: [1, 2, 3]
                     values:
+                      active: true
                       category_id: [[6, 0, [1, 2]]]
-                """
-        ),
-        @Example(
-            full = true,
-            title = "Count records with filters",
-            code = """
-                id: count_active_users
-                namespace: company.team
-
-                tasks:
-                  - id: count_active_users
-                    type: io.kestra.plugin.odoo.Query
-                    url: https://my-odoo-instance.com
-                    db: my-database
-                    username: user@example.com
-                    password: "{{ secret('ODOO_PASSWORD') }}"
-                    model: res.users
-                    operation: SEARCH_COUNT
-                    filters:
-                      - ["active", "=", true]
                 """
         )
     }
@@ -189,7 +151,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
         description = "Domain filters for search operations. Each filter is a list of [field, operator, value]. " +
                       "Multiple filters are combined with AND logic. Example: [[\"is_company\", \"=\", true], [\"customer_rank\", \">\", 0]]"
     )
-    private Property<List> filters;
+    private Property<List<?>> filters;
 
     @Schema(
         title = "Fields to retrieve",
@@ -254,40 +216,54 @@ public class Query extends Task implements RunnableTask<Query.Output> {
         int recordCount = 0;
 
         switch (rOperation) {
-            case SEARCH_READ:
-                result = executeSearchRead(runContext, odooClient, rModel, rFetchType);
-                recordCount = calculateRecordCount(result, rFetchType);
+            case SEARCH_READ: {
+                Object searchReadResult = executeSearchRead(runContext, odooClient, rModel, rFetchType);
+                result = searchReadResult;
+                recordCount = calculateRecordCount(searchReadResult, rFetchType);
                 break;
+            }
 
-            case READ:
-                result = executeRead(runContext, odooClient, rModel, rFetchType);
-                recordCount = calculateRecordCount(result, rFetchType);
+            case READ: {
+                Object readResult = executeRead(runContext, odooClient, rModel, rFetchType);
+                result = readResult;
+                recordCount = calculateRecordCount(readResult, rFetchType);
                 break;
+            }
 
-            case CREATE:
-                result = executeCreate(runContext, odooClient, rModel);
+            case CREATE: {
+                Integer createId = executeCreate(runContext, odooClient, rModel);
+                result = createId;
                 recordCount = 1;
                 break;
+            }
 
-            case WRITE:
-                result = executeWrite(runContext, odooClient, rModel);
+            case WRITE: {
+                Boolean writeSuccess = executeWrite(runContext, odooClient, rModel);
+                result = writeSuccess;
                 recordCount = runContext.render(this.ids).asList(Integer.class).size();
                 break;
+            }
 
-            case UNLINK:
-                result = executeUnlink(runContext, odooClient, rModel);
+            case UNLINK: {
+                Boolean unlinkSuccess = executeUnlink(runContext, odooClient, rModel);
+                result = unlinkSuccess;
                 recordCount = runContext.render(this.ids).asList(Integer.class).size();
                 break;
+            }
 
-            case SEARCH:
-                result = executeSearch(runContext, odooClient, rModel, rFetchType);
-                recordCount = calculateRecordCount(result, rFetchType);
+            case SEARCH: {
+                Object searchResult = executeSearch(runContext, odooClient, rModel, rFetchType);
+                result = searchResult;
+                recordCount = calculateRecordCount(searchResult, rFetchType);
                 break;
+            }
 
-            case SEARCH_COUNT:
-                result = executeSearchCount(runContext, odooClient, rModel);
-                recordCount = result instanceof Integer ? (Integer) result : 0;
+            case SEARCH_COUNT: {
+                Integer count = executeSearchCount(runContext, odooClient, rModel);
+                result = count;
+                recordCount = count != null ? count : 0;
                 break;
+            }
 
             default:
                 throw new IllegalArgumentException("Unsupported operation: " + rOperation.getValue() +
@@ -302,14 +278,17 @@ public class Query extends Task implements RunnableTask<Query.Output> {
         if (rOperation == Operation.SEARCH_READ || rOperation == Operation.READ) {
             switch (rFetchType) {
                 case FETCH_ONE:
-                    outputBuilder.row(result instanceof Map ? (Map<String, Object>) result : null);
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> row = result instanceof Map ? (Map<String, Object>) result : null;
+                    outputBuilder.row(row);
                     break;
                 case FETCH:
-                    outputBuilder.rows(result instanceof List ? (List<Map<String, Object>>) result : null);
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> rows = result instanceof List ? (List<Map<String, Object>>) result : null;
+                    outputBuilder.rows(rows);
                     break;
                 case STORE:
-                    // TODO: Implement file storage, for now treat as FETCH
-                    outputBuilder.rows(result instanceof List ? (List<Map<String, Object>>) result : null);
+                    outputBuilder.uri(result instanceof StoredResult ? ((StoredResult) result).getUri() : null);
                     break;
                 case NONE:
                 default:
@@ -322,42 +301,57 @@ public class Query extends Task implements RunnableTask<Query.Output> {
                 case FETCH_ONE:
                     if (result instanceof Integer) {
                         outputBuilder.row(Map.of("id", result));
-                    } else if (result instanceof List && !((List<?>) result).isEmpty()) {
-                        outputBuilder.row(Map.of("id", ((List<?>) result).get(0)));
+                    } else if (result instanceof List) {
+                        @SuppressWarnings("unchecked")
+                        List<?> resultList = (List<?>) result;
+                        if (!resultList.isEmpty()) {
+                            outputBuilder.row(Map.of("id", resultList.get(0)));
+                        }
                     }
                     break;
                 case FETCH:
                     if (result instanceof List) {
-                        List<Map<String, Object>> convertedIds = ((List<?>) result).stream()
+                        @SuppressWarnings("unchecked")
+                        List<?> resultList = (List<?>) result;
+                        List<Map<String, Object>> convertedIds = resultList.stream()
                             .map(id -> Map.<String, Object>of("id", id))
                             .toList();
                         outputBuilder.rows(convertedIds);
                     }
                     break;
                 case STORE:
-                    // TODO: Implement file storage, for now treat as FETCH
-                    if (result instanceof List) {
-                        List<Map<String, Object>> convertedIds = ((List<?>) result).stream()
-                            .map(id -> Map.<String, Object>of("id", id))
-                            .toList();
-                        outputBuilder.rows(convertedIds);
-                    }
+                    outputBuilder.uri(result instanceof StoredResult ? ((StoredResult) result).getUri() : null);
                     break;
                 case NONE:
                 default:
                     // No output data for NONE
                     break;
             }
+        } else if (rOperation == Operation.CREATE) {
+            // CREATE returns the ID of the created record
+            if (result instanceof Integer) {
+                outputBuilder.ids(List.of((Integer) result));
+            }
+        } else if (rOperation == Operation.WRITE || rOperation == Operation.UNLINK) {
+            // WRITE and UNLINK operations - populate ids with the affected record IDs
+            List<Integer> affectedIds = runContext.render(this.ids).asList(Integer.class);
+            if (affectedIds != null && !affectedIds.isEmpty()) {
+                outputBuilder.ids(affectedIds);
+            }
         }
 
         return outputBuilder.build();
     }
 
+    /**
+     * Execute SEARCH_READ operation - returns List<Map<String, Object>> for records data.
+     * Return type varies based on fetchType: List<Map> for FETCH, Map for FETCH_ONE, StoredResult for STORE, null for NONE.
+     */
     @SuppressWarnings("unchecked")
     private Object executeSearchRead(RunContext runContext, OdooClient client, String model, FetchType fetchType) throws Exception {
-        List domain = null;
+        List<?> domain = null;
         if (this.filters != null) {
-            domain = runContext.render(this.filters).as(List.class).orElse(null);
+            domain = runContext.render(this.filters).asList(Object.class);
         }
 
         List<String> fieldsList = runContext.render(this.fields).asList(String.class);
@@ -373,14 +367,17 @@ public class Query extends Task implements RunnableTask<Query.Output> {
             case NONE:
                 return null;
             case STORE:
-                // For STORE, we could implement file storage here in the future
-                // For now, return the records as FETCH behavior
+                return storeRecordsAsFile(runContext, records);
             case FETCH:
             default:
                 return records;
         }
     }
 
+    /**
+     * Execute READ operation - returns List<Map<String, Object>> for records data.
+     * Return type varies based on fetchType: List<Map> for FETCH, Map for FETCH_ONE, StoredResult for STORE, null for NONE.
+     */
     private Object executeRead(RunContext runContext, OdooClient client, String model, FetchType fetchType) throws Exception {
         List<Integer> idsList = runContext.render(this.ids).asList(Integer.class);
         if (idsList == null || idsList.isEmpty()) {
@@ -398,23 +395,29 @@ public class Query extends Task implements RunnableTask<Query.Output> {
             case NONE:
                 return null;
             case STORE:
-                // For STORE, we could implement file storage here in the future
-                // For now, return the records as FETCH behavior
+                return storeRecordsAsFile(runContext, records);
             case FETCH:
             default:
                 return records;
         }
     }
 
-    private Object executeCreate(RunContext runContext, OdooClient client, String model) throws Exception {
+    /**
+     * Execute CREATE operation - returns Integer (ID of the created record).
+     */
+    private Integer executeCreate(RunContext runContext, OdooClient client, String model) throws Exception {
         Map<String, Object> valuesMap = runContext.render(this.values).asMap(String.class, Object.class);
         if (valuesMap == null || valuesMap.isEmpty()) {
             throw new IllegalArgumentException("Values are required for create operation");
         }
-        return client.create(model, valuesMap);
+        Object result = client.create(model, valuesMap);
+        return result instanceof Integer ? (Integer) result : null;
     }
 
-    private Object executeWrite(RunContext runContext, OdooClient client, String model) throws Exception {
+    /**
+     * Execute WRITE operation - returns Boolean (success/failure of the update).
+     */
+    private Boolean executeWrite(RunContext runContext, OdooClient client, String model) throws Exception {
         List<Integer> idsList = runContext.render(this.ids).asList(Integer.class);
         Map<String, Object> valuesMap = runContext.render(this.values).asMap(String.class, Object.class);
 
@@ -425,22 +428,31 @@ public class Query extends Task implements RunnableTask<Query.Output> {
             throw new IllegalArgumentException("Values are required for write operation");
         }
 
-        return client.write(model, idsList, valuesMap);
+        Object result = client.write(model, idsList, valuesMap);
+        return result instanceof Boolean ? (Boolean) result : Boolean.TRUE;
     }
 
-    private Object executeUnlink(RunContext runContext, OdooClient client, String model) throws Exception {
+    /**
+     * Execute UNLINK operation - returns Boolean (success/failure of the deletion).
+     */
+    private Boolean executeUnlink(RunContext runContext, OdooClient client, String model) throws Exception {
         List<Integer> idsList = runContext.render(this.ids).asList(Integer.class);
         if (idsList == null || idsList.isEmpty()) {
             throw new IllegalArgumentException("IDs are required for unlink operation");
         }
-        return client.unlink(model, idsList);
+        Object result = client.unlink(model, idsList);
+        return result instanceof Boolean ? (Boolean) result : Boolean.TRUE;
     }
 
+    /**
+     * Execute SEARCH operation - returns List<Integer> for record IDs.
+     * Return type varies based on fetchType: List<Integer> for FETCH, Integer for FETCH_ONE, StoredResult for STORE, null for NONE.
+     */
     @SuppressWarnings("unchecked")
     private Object executeSearch(RunContext runContext, OdooClient client, String model, FetchType fetchType) throws Exception {
-        List domain = null;
+        List<?> domain = null;
         if (this.filters != null) {
-            domain = runContext.render(this.filters).as(List.class).orElse(null);
+            domain = runContext.render(this.filters).asList(Object.class);
         }
 
         Integer limitValue = runContext.render(this.limit).as(Integer.class).orElse(null);
@@ -455,22 +467,56 @@ public class Query extends Task implements RunnableTask<Query.Output> {
             case NONE:
                 return null;
             case STORE:
-                // For STORE, we could implement file storage here in the future
-                // For now, return the ids as FETCH behavior
+                // For SEARCH operation, we need to convert IDs to a proper format for storage
+                List<Map<String, Object>> convertedIds = ids.stream()
+                    .map(id -> Map.<String, Object>of("id", id))
+                    .toList();
+                return storeRecordsAsFile(runContext, convertedIds);
             case FETCH:
             default:
                 return ids;
         }
     }
 
+    /**
+     * Execute SEARCH_COUNT operation - returns Integer (count of records matching criteria).
+     */
     @SuppressWarnings("unchecked")
-    private Object executeSearchCount(RunContext runContext, OdooClient client, String model) throws Exception {
-        List domain = null;
+    private Integer executeSearchCount(RunContext runContext, OdooClient client, String model) throws Exception {
+        List<?> domain = null;
         if (this.filters != null) {
-            domain = runContext.render(this.filters).as(List.class).orElse(null);
+            domain = runContext.render(this.filters).asList(Object.class);
         }
 
-        return client.searchCount(model, domain);
+        Object result = client.searchCount(model, domain);
+        return result instanceof Integer ? (Integer) result : 0;
+    }
+
+    /**
+     * Store records as an ION file in Kestra's internal storage.
+     * Returns a StoredResult containing both the URI and record count.
+     * TODO: Implement proper file storage once storage interface is clarified
+     */
+    private StoredResult storeRecordsAsFile(RunContext runContext, List<?> records) throws IOException {
+        // Temporary implementation - return null URI but correct count
+        // This needs to be implemented with proper storage interface
+        return new StoredResult(null, records.size());
+    }
+
+    /**
+     * Helper class to return both URI and count for STORE operations.
+     */
+    private static class StoredResult {
+        private final URI uri;
+        private final int count;
+
+        StoredResult(URI uri, int count) {
+            this.uri = uri;
+            this.count = count;
+        }
+
+        public URI getUri() { return uri; }
+        public int getCount() { return count; }
     }
 
     /**
@@ -486,8 +532,9 @@ public class Query extends Task implements RunnableTask<Query.Output> {
                 return result != null ? 1 : 0;
             case NONE:
                 return 0;
-            case FETCH:
             case STORE:
+                return result instanceof StoredResult ? ((StoredResult) result).getCount() : 0;
+            case FETCH:
             default:
                 return result instanceof List ? ((List<?>) result).size() : 0;
         }
@@ -518,5 +565,11 @@ public class Query extends Task implements RunnableTask<Query.Output> {
             title = "The number of records affected or returned by the operation."
         )
         private final Long size;
+
+        @Schema(
+            title = "List of IDs for CREATE operations or affected record IDs.",
+            description = "Contains the IDs of created records (CREATE) or affected records (WRITE/UNLINK)."
+        )
+        private final List<Integer> ids;
     }
 }

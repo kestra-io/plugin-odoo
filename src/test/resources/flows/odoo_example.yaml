@@ -1,13 +1,23 @@
 id: odoo_example
 namespace: io.kestra.plugin.odoo
 
+description: |
+  Example workflow demonstrating Kestra Odoo Plugin operations
+  including CREATE operation with ID capture and workflow chaining.
+
+variables:
+  odoo_url: http://localhost:8069
+  odoo_db: demo
+  odoo_username: test@demo.com
+  odoo_password: admin
+
 tasks:
 - id: query_partners
   type: io.kestra.plugin.odoo.Query
-  url: https://demo.odoo.com
-  db: demo
-  username: demo
-  password: demo
+  url: "{{ vars.odoo_url }}"
+  db: "{{ vars.odoo_db }}"
+  username: "{{ vars.odoo_username }}"
+  password: "{{ vars.odoo_password }}"
   model: res.partner
   operation: SEARCH_READ
   filters:
@@ -18,11 +28,59 @@ tasks:
 
 - id: count_users
   type: io.kestra.plugin.odoo.Query
-  url: https://demo.odoo.com
-  db: demo
-  username: demo
-  password: demo
+  url: "{{ vars.odoo_url }}"
+  db: "{{ vars.odoo_db }}"
+  username: "{{ vars.odoo_username }}"
+  password: "{{ vars.odoo_password }}"
   model: res.users
   operation: SEARCH_COUNT
   filters:
     - ["active", "=", true]
+
+- id: create_test_partner
+  type: io.kestra.plugin.odoo.Query
+  url: "{{ vars.odoo_url }}"
+  db: "{{ vars.odoo_db }}"
+  username: "{{ vars.odoo_username }}"
+  password: "{{ vars.odoo_password }}"
+  model: res.partner
+  operation: CREATE
+  values:
+    name: "Test Partner from Kestra"
+    email: "test@kestra.example"
+    is_company: true
+    customer_rank: 1
+
+- id: update_test_partner
+  type: io.kestra.plugin.odoo.Query
+  url: "{{ vars.odoo_url }}"
+  db: "{{ vars.odoo_db }}"
+  username: "{{ vars.odoo_username }}"
+  password: "{{ vars.odoo_password }}"
+  model: res.partner
+  operation: WRITE
+  ids: ["{{ outputs.create_test_partner.ids[0] }}"]
+  values:
+    phone: "+1-555-EXAMPLE"
+    comment: "Updated via Kestra workflow chaining"
+
+- id: read_updated_partner
+  type: io.kestra.plugin.odoo.Query
+  url: "{{ vars.odoo_url }}"
+  db: "{{ vars.odoo_db }}"
+  username: "{{ vars.odoo_username }}"
+  password: "{{ vars.odoo_password }}"
+  model: res.partner
+  operation: READ
+  ids: ["{{ outputs.create_test_partner.ids[0] }}"]
+  fields: ["id", "name", "email", "phone", "comment"]
+
+- id: cleanup_test_partner
+  type: io.kestra.plugin.odoo.Query
+  url: "{{ vars.odoo_url }}"
+  db: "{{ vars.odoo_db }}"
+  username: "{{ vars.odoo_username }}"
+  password: "{{ vars.odoo_password }}"
+  model: res.partner
+  operation: UNLINK
+  ids: ["{{ outputs.create_test_partner.ids[0] }}"]
