@@ -23,27 +23,19 @@ class SimpleQueryTest {
     @Inject
     RunContextFactory runContextFactory;
 
-    private Query task;
-    private RunContext runContext;
-
-    @BeforeEach
-    void setUp() {
-        task = Query.builder()
+    @Test
+    void shouldCreateTaskWithRequiredProperties() {
+        Query task = Query.builder()
             .id("test-task")
             .type(Query.class.getName())
-            .url(Property.ofValue("https://demo.odoo.com"))
+            .url(Property.ofValue("http://localhost:8069"))
             .db(Property.ofValue("demo"))
-            .username(Property.ofValue("demo"))
-            .password(Property.ofValue("demo"))
+            .username(Property.ofValue("test@demo.com"))
+            .password(Property.ofValue("admin"))
             .model(Property.ofValue("res.partner"))
             .operation(Property.ofValue(Operation.SEARCH_READ))
             .build();
 
-        runContext = TestsUtils.mockRunContext(runContextFactory, task, Map.of());
-    }
-
-    @Test
-    void shouldCreateTaskWithRequiredProperties() {
         assertThat(task, is(notNullValue()));
         assertThat(task.getUrl(), is(notNullValue()));
         assertThat(task.getDb(), is(notNullValue()));
@@ -63,10 +55,10 @@ class SimpleQueryTest {
         Query fullTask = Query.builder()
             .id("full-task")
             .type(Query.class.getName())
-            .url(Property.ofValue("https://test-odoo.com"))
-            .db(Property.ofValue("test_db"))
-            .username(Property.ofValue("test_user"))
-            .password(Property.ofValue("test_password"))
+            .url(Property.ofValue("http://localhost:8069"))
+            .db(Property.ofValue("demo"))
+            .username(Property.ofValue("test@demo.com"))
+            .password(Property.ofValue("admin"))
             .model(Property.ofValue("res.partner"))
             .operation(Property.ofValue(Operation.CREATE))
             .fields(Property.ofValue(fields))
@@ -94,10 +86,10 @@ class SimpleQueryTest {
         Query taskWithFilters = Query.builder()
             .id("filter-task")
             .type(Query.class.getName())
-            .url(Property.ofValue("https://test-odoo.com"))
-            .db(Property.ofValue("test_db"))
-            .username(Property.ofValue("test_user"))
-            .password(Property.ofValue("test_password"))
+            .url(Property.ofValue("http://localhost:8069"))
+            .db(Property.ofValue("demo"))
+            .username(Property.ofValue("test@demo.com"))
+            .password(Property.ofValue("admin"))
             .model(Property.ofValue("res.partner"))
             .operation(Property.ofValue(Operation.SEARCH_READ))
             .filters(Property.ofValue(filters))
@@ -115,10 +107,10 @@ class SimpleQueryTest {
             Query opTask = Query.builder()
                 .id("op-task-" + operation.getValue())
                 .type(Query.class.getName())
-                .url(Property.ofValue("https://demo.odoo.com"))
+                .url(Property.ofValue("http://localhost:8069"))
                 .db(Property.ofValue("demo"))
-                .username(Property.ofValue("demo"))
-                .password(Property.ofValue("demo"))
+                .username(Property.ofValue("test@demo.com"))
+                .password(Property.ofValue("admin"))
                 .model(Property.ofValue("res.partner"))
                 .operation(Property.ofValue(operation))
                 .build();
@@ -141,10 +133,10 @@ class SimpleQueryTest {
             .operation(Property.ofValue(Operation.SEARCH_COUNT))
             .build();
 
-        RunContext taskRunContext = TestsUtils.mockRunContext(runContextFactory, countTask, Map.of());
+        RunContext runContext = TestsUtils.mockRunContext(runContextFactory, countTask, Map.of());
 
         // Execute the task and assert on output values
-        Query.Output output = countTask.run(taskRunContext);
+        Query.Output output = countTask.run(runContext);
 
         // Assert on actual execution results
         assertThat(output, is(notNullValue()));
@@ -174,10 +166,10 @@ class SimpleQueryTest {
             .fetchType(Property.ofValue(FetchType.FETCH))
             .build();
 
-        RunContext taskRunContext = TestsUtils.mockRunContext(runContextFactory, searchTask, Map.of());
+        RunContext runContext = TestsUtils.mockRunContext(runContextFactory, searchTask, Map.of());
 
         // Execute the task and assert on output values
-        Query.Output output = searchTask.run(taskRunContext);
+        Query.Output output = searchTask.run(runContext);
 
         // Assert on actual execution results
         assertThat(output, is(notNullValue()));
