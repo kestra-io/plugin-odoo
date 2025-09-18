@@ -22,26 +22,28 @@ fi
 # Use docker compose (v2) if available, otherwise fall back to docker-compose (v1)
 if command -v docker compose &> /dev/null; then
     DC_CMD="docker compose"
+    COMPOSE_FILE="docker-compose.yml"
 else
     DC_CMD="docker-compose"
+    COMPOSE_FILE="odoo-docker-compose.yml"
 fi
 
 # Stop and remove any existing containers
 echo "🧹 Cleaning up existing containers..."
-$DC_CMD -f docker-compose.yml down -v --remove-orphans || true
+$DC_CMD -f $COMPOSE_FILE down -v --remove-orphans || true
 
 # Start Odoo and PostgreSQL containers
 echo "🚀 Starting Odoo and PostgreSQL containers..."
-$DC_CMD -f docker-compose.yml up -d --build
+$DC_CMD -f $COMPOSE_FILE up -d --build
 
 # Wait for PostgreSQL to be ready
 echo "⏳ Waiting for PostgreSQL to be ready..."
 timeout=60
 elapsed=0
-while ! $DC_CMD -f docker-compose.yml exec -T postgres pg_isready -U odoo -d postgres; do
+while ! $DC_CMD -f $COMPOSE_FILE exec -T postgres pg_isready -U odoo -d postgres; do
     if [ $elapsed -ge $timeout ]; then
         echo "❌ PostgreSQL failed to start within ${timeout} seconds"
-        $DC_CMD -f docker-compose.yml logs postgres
+        $DC_CMD -f $COMPOSE_FILE logs postgres
         exit 1
     fi
     sleep 2
@@ -57,7 +59,7 @@ elapsed=0
 while ! curl -f -s http://localhost:8069/web/database/selector &> /dev/null; do
     if [ $elapsed -ge $timeout ]; then
         echo "❌ Odoo failed to start within ${timeout} seconds"
-        $DC_CMD -f docker-compose.yml logs odoo
+        $DC_CMD -f $COMPOSE_FILE logs odoo
         exit 1
     fi
     sleep 5
@@ -101,7 +103,7 @@ fi
 
 # Show status
 echo "📊 Container status:"
-$DC_CMD -f docker-compose.yml ps
+$DC_CMD -f $COMPOSE_FILE ps
 
 echo ""
 echo "🎉 Setup complete!"
@@ -117,4 +119,4 @@ echo "  ./gradlew test"
 echo "  ODOO_INTEGRATION_TESTS=true ./gradlew test"
 echo ""
 echo "🛑 To stop the services:"
-echo "  $DC_CMD -f docker-compose.yml down"
+echo "  $DC_CMD -f $COMPOSE_FILE down"
