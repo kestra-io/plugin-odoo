@@ -53,7 +53,7 @@ ENV PATH="$PATH:$JAVA_HOME/bin"
 # Will load a custom configuration file for Micronaut
 ENV MICRONAUT_ENVIRONMENTS=local,override
 # Sets the path where you save plugins as Jar and is loaded during the startup process
-ENV KESTRA_PLUGINS_PATH="/workspaces/kestra-plugin-odoo/local/plugins"
+ENV KESTRA_PLUGINS_PATH="/workspaces/plugin-odoo/local/plugins"
 # --------------------------------------
 
 # --------------------------------------
