@@ -22,10 +22,10 @@ fi
 # Use docker compose (v2) if available, otherwise fall back to docker-compose (v1)
 if command -v docker compose &> /dev/null; then
     DC_CMD="docker compose"
-    COMPOSE_FILE="docker-compose.yml"
+    COMPOSE_FILE="docker-compose-ci.yml"
 else
     DC_CMD="docker-compose"
-    COMPOSE_FILE="odoo-docker-compose.yml"
+    COMPOSE_FILE="docker-compose-ci.yml"
 fi
 
 # Stop and remove any existing containers
