@@ -16,7 +16,7 @@ ENV HOME="/root"
 # --------------------------------------
 # Need to add the devcontainer workspace folder as a safe directory to enable git 
 # version control system to be enabled in the containers file system.
-RUN git config --global --add safe.directory "/workspaces/kestra-plugin-odoo"
+RUN git config --global --add safe.directory "/workspaces/plugin-odoo"
 # --------------------------------------
 
 # --------------------------------------
