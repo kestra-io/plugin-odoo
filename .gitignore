@@ -17,3 +17,4 @@ src/test/resources/application-test.yml
 META-INF/
 bin/
 logs/
+.factorypath
