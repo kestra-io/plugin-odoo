@@ -1,5 +1,5 @@
 {
-  "name": "kestra-plugin-odoo",
+  "name": "plugin-odoo",
   "build": {
     "context": ".",
     "dockerfile": "Dockerfile"
