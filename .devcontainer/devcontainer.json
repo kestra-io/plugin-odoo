@@ -4,7 +4,7 @@
     "context": ".",
     "dockerfile": "Dockerfile"
   },
-  "workspaceFolder": "/workspaces/kestra-plugin-odoo",
+  "workspaceFolder": "/workspaces/plugin-odoo",
   "forwardPorts": [8080],
   "customizations": {
     "vscode": {
