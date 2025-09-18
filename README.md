@@ -317,7 +317,7 @@ For local development and testing, you can run Odoo using Docker Compose:
 
 1. **Start Odoo and PostgreSQL containers:**
    ```bash
-   docker-compose -f odoo-docker-compose.yml up -d
+   docker compose -f docker-compose.yml up -d
    ```
 
 2. **Access Odoo Database Manager:**
