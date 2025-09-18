@@ -1,5 +1,4 @@
-version: "3.8"
-
+version: '3.8'
 services:
   app:
     build:
@@ -10,3 +9,61 @@ services:
       - "8080:8080"
     volumes:
       - ./build/libs/:/app/plugins/
+
+  postgres:
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=odoo_password
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - db:/var/lib/postgresql/data/pgdata
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  odoo:
+    image: odoo:15.0
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8069:8069"
+    environment:
+      - HOST=postgres
+      - USER=odoo
+      - PASSWORD=odoo_password
+      - DB_MAXCONN=64
+      - DB_TEMPLATE=template0
+    volumes:
+      - data:/var/lib/odoo
+      - ./config:/etc/odoo
+    command: >
+      bash -c "
+        # Wait a bit more for postgres to be fully ready
+        sleep 5 &&
+        # Run Odoo with additional options for testing
+        odoo --database=postgres --db-filter=.* --load-language=en_US --without-demo=false --init=base
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8069/web/database/selector || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+volumes:
+  data:
+    driver: local
+  db:
+    driver: local
+
+networks:
+  default:
+    name: odoo-network
