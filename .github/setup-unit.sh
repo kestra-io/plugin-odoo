@@ -20,7 +20,7 @@ fi
 
 # Stop and remove any existing containers
 echo "🧹 Cleaning up existing containers..."
-docker-compose -f odoo-docker-compose.yml down -v --remove-orphans || true
+docker-compose -f docker-compose.yml down -v --remove-orphans || true
 
 # Start Odoo and PostgreSQL containers
 echo "🚀 Starting Odoo and PostgreSQL containers..."
