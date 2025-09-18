@@ -12,6 +12,7 @@ services:
     depends_on:
       - odoo
 
+
   postgres:
     image: postgres:13
     environment:
@@ -65,3 +66,4 @@ volumes:
     driver: local
   db:
     driver: local
+

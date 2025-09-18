@@ -13,6 +13,7 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
+# Check for Docker Compose (both v1 and v2)
 if ! command -v docker-compose &> /dev/null && ! command -v docker compose &> /dev/null; then
     echo "❌ Docker Compose is not installed or not in PATH"
     exit 1
@@ -30,7 +31,7 @@ echo "🧹 Cleaning up existing containers..."
 $DC_CMD -f docker-compose.yml down -v --remove-orphans || true
 
 # Start Odoo and PostgreSQL containers
-echo "🚀 Starting Odoo, Kestra and PostgreSQL containers..."
+echo "🚀 Starting Odoo and PostgreSQL containers..."
 $DC_CMD -f docker-compose.yml up -d --build
 
 # Wait for PostgreSQL to be ready
@@ -88,7 +89,7 @@ else
 
     # Wait a bit for database creation to complete
     echo "⏳ Waiting for database creation to complete..."
-    sleep 10
+    sleep 30
 
     # Verify database was created
     if curl -s -X POST -d "name=demo" http://localhost:8069/web/database/list | grep -q "demo"; then

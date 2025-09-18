@@ -338,7 +338,8 @@ For local development and testing, you can run Odoo using Docker Compose:
 
 ### Stop Local Instance
 ```bash
-docker-compose -f odoo-docker-compose.yml down
+
+docker compose -f docker-compose.yml down
 ```
 
 ### Example Workflows
