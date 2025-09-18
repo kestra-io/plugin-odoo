@@ -13,27 +13,34 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
+if ! command -v docker-compose &> /dev/null && ! command -v docker compose &> /dev/null; then
     echo "❌ Docker Compose is not installed or not in PATH"
     exit 1
 fi
 
+# Use docker compose (v2) if available, otherwise fall back to docker-compose (v1)
+if command -v docker compose &> /dev/null; then
+    DC_CMD="docker compose"
+else
+    DC_CMD="docker-compose"
+fi
+
 # Stop and remove any existing containers
 echo "🧹 Cleaning up existing containers..."
-docker-compose -f docker-compose.yml down -v --remove-orphans || true
+$DC_CMD -f docker-compose.yml down -v --remove-orphans || true
 
 # Start Odoo and PostgreSQL containers
-echo "🚀 Starting Odoo and PostgreSQL containers..."
-docker-compose -f odoo-docker-compose.yml up -d
+echo "🚀 Starting Odoo, Kestra and PostgreSQL containers..."
+$DC_CMD -f docker-compose.yml up -d --build
 
 # Wait for PostgreSQL to be ready
 echo "⏳ Waiting for PostgreSQL to be ready..."
 timeout=60
 elapsed=0
-while ! docker-compose -f odoo-docker-compose.yml exec -T postgres pg_isready -U odoo -d postgres; do
+while ! $DC_CMD -f docker-compose.yml exec -T postgres pg_isready -U odoo -d postgres; do
     if [ $elapsed -ge $timeout ]; then
         echo "❌ PostgreSQL failed to start within ${timeout} seconds"
-        docker-compose -f odoo-docker-compose.yml logs postgres
+        $DC_CMD -f docker-compose.yml logs postgres
         exit 1
     fi
     sleep 2
@@ -49,7 +56,7 @@ elapsed=0
 while ! curl -f -s http://localhost:8069/web/database/selector &> /dev/null; do
     if [ $elapsed -ge $timeout ]; then
         echo "❌ Odoo failed to start within ${timeout} seconds"
-        docker-compose -f odoo-docker-compose.yml logs odoo
+        $DC_CMD -f docker-compose.yml logs odoo
         exit 1
     fi
     sleep 5
@@ -81,7 +88,7 @@ else
 
     # Wait a bit for database creation to complete
     echo "⏳ Waiting for database creation to complete..."
-    sleep 30
+    sleep 10
 
     # Verify database was created
     if curl -s -X POST -d "name=demo" http://localhost:8069/web/database/list | grep -q "demo"; then
@@ -93,7 +100,7 @@ fi
 
 # Show status
 echo "📊 Container status:"
-docker-compose -f odoo-docker-compose.yml ps
+$DC_CMD -f docker-compose.yml ps
 
 echo ""
 echo "🎉 Setup complete!"
@@ -109,4 +116,4 @@ echo "  ./gradlew test"
 echo "  ODOO_INTEGRATION_TESTS=true ./gradlew test"
 echo ""
 echo "🛑 To stop the services:"
-echo "  docker-compose -f odoo-docker-compose.yml down"
+echo "  $DC_CMD -f docker-compose.yml down"

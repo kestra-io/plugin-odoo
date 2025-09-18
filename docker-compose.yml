@@ -9,6 +9,8 @@ services:
       - "8080:8080"
     volumes:
       - ./build/libs/:/app/plugins/
+    depends_on:
+      - odoo
 
   postgres:
     image: postgres:13
@@ -63,7 +65,3 @@ volumes:
     driver: local
   db:
     driver: local
-
-networks:
-  default:
-    name: odoo-network
