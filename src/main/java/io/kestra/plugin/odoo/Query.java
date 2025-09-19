@@ -213,7 +213,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
         logger.info("Authentication successful. Executing {} operation on model {}", rOperation.getValue(), rModel);
 
         Object result;
-        int recordCount = 0;
+        int recordCount;
 
         switch (rOperation) {
             case SEARCH_READ: {
