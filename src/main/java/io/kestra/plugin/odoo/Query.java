@@ -41,9 +41,9 @@ import java.util.Map;
                 tasks:
                   - id: query_partners
                     type: io.kestra.plugin.odoo.Query
-                    url: https://my-odoo-instance.com
-                    db: my-database
-                    username: user@example.com
+                    url: http://localhost:8069
+                    db: demo
+                    username: test@demo.com
                     password: "{{ secret('ODOO_PASSWORD') }}"
                     model: res.partner
                     operation: SEARCH_READ
@@ -64,9 +64,9 @@ import java.util.Map;
                 tasks:
                   - id: create_partner
                     type: io.kestra.plugin.odoo.Query
-                    url: https://my-odoo-instance.com
-                    db: my-database
-                    username: user@example.com
+                    url: http://localhost:8069
+                    db: demo
+                    username: test@demo.com
                     password: "{{ secret('ODOO_PASSWORD') }}"
                     model: res.partner
                     operation: CREATE
@@ -86,9 +86,9 @@ import java.util.Map;
                 tasks:
                   - id: update_partners
                     type: io.kestra.plugin.odoo.Query
-                    url: https://my-odoo-instance.com
-                    db: my-database
-                    username: user@example.com
+                    url: http://localhost:8069
+                    db: demo
+                    username: test@demo.com
                     password: "{{ secret('ODOO_PASSWORD') }}"
                     model: res.partner
                     operation: WRITE
