@@ -49,7 +49,6 @@ import java.util.Map;
                     operation: SEARCH_READ
                     filters:
                       - ["is_company", "=", true]
-                      - ["customer_rank", ">", 0]
                     fields: ["name", "email", "phone", "is_company"]
                     limit: 10
                     fetchType: FETCH
@@ -75,7 +74,6 @@ import java.util.Map;
                       name: "Acme Corporation"
                       email: "contact@acme.com"
                       is_company: true
-                      customer_rank: 1
                 """
         ),
         @Example(
