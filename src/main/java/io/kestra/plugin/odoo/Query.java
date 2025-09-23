@@ -41,15 +41,14 @@ import java.util.Map;
                 tasks:
                   - id: query_partners
                     type: io.kestra.plugin.odoo.Query
-                    url: https://my-odoo-instance.com
-                    db: my-database
-                    username: user@example.com
+                    url: http://localhost:8069
+                    db: demo
+                    username: test@demo.com
                     password: "{{ secret('ODOO_PASSWORD') }}"
                     model: res.partner
                     operation: SEARCH_READ
                     filters:
                       - ["is_company", "=", true]
-                      - ["customer_rank", ">", 0]
                     fields: ["name", "email", "phone", "is_company"]
                     limit: 10
                     fetchType: FETCH
@@ -65,9 +64,9 @@ import java.util.Map;
                 tasks:
                   - id: create_partner
                     type: io.kestra.plugin.odoo.Query
-                    url: https://my-odoo-instance.com
-                    db: my-database
-                    username: user@example.com
+                    url: http://localhost:8069
+                    db: demo
+                    username: test@demo.com
                     password: "{{ secret('ODOO_PASSWORD') }}"
                     model: res.partner
                     operation: CREATE
@@ -75,7 +74,6 @@ import java.util.Map;
                       name: "Acme Corporation"
                       email: "contact@acme.com"
                       is_company: true
-                      customer_rank: 1
                 """
         ),
         @Example(
@@ -88,9 +86,9 @@ import java.util.Map;
                 tasks:
                   - id: update_partners
                     type: io.kestra.plugin.odoo.Query
-                    url: https://my-odoo-instance.com
-                    db: my-database
-                    username: user@example.com
+                    url: http://localhost:8069
+                    db: demo
+                    username: test@demo.com
                     password: "{{ secret('ODOO_PASSWORD') }}"
                     model: res.partner
                     operation: WRITE
