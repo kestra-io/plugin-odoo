@@ -24,8 +24,8 @@ import java.util.Map;
 @Getter
 @NoArgsConstructor
 @Schema(
-    title = "Query Odoo ERP system via XML-RPC API",
-    description = "This task allows you to interact with Odoo models using XML-RPC API. " +
+    title = "Query Odoo ERP system via XML-RPC API.",
+    description = "This task interacts with Odoo models using XML-RPC API. " +
                   "It supports various operations like search_read, create, write, unlink, search, and search_count. " +
                   "You can configure the Odoo server connection and specify the model, operation, and parameters."
 )
@@ -542,30 +542,30 @@ public class Query extends Task implements RunnableTask<Query.Output> {
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
         @Schema(
-            title = "Map containing the first row of fetched data.",
+            title = "Map containing the first row of fetched data",
             description = "Only populated if fetchType is FETCH_ONE."
         )
         private final Map<String, Object> row;
 
         @Schema(
-            title = "List of map containing rows of fetched data.",
+            title = "List of map containing rows of fetched data",
             description = "Only populated if fetchType is FETCH."
         )
         private final List<Map<String, Object>> rows;
 
         @Schema(
-            title = "The URI of the result file on Kestra's internal storage (.ion file / Amazon Ion formatted text file).",
+            title = "The URI of the result file on Kestra's internal storage (.ion file / Amazon Ion formatted text file)",
             description = "Only populated if fetchType is STORE."
         )
         private final URI uri;
 
         @Schema(
-            title = "The number of records affected or returned by the operation."
+            title = "The number of records affected or returned by the operation"
         )
         private final Long size;
 
         @Schema(
-            title = "List of IDs for CREATE operations or affected record IDs.",
+            title = "List of IDs for CREATE operations or affected record IDs",
             description = "Contains the IDs of created records (CREATE) or affected records (WRITE/UNLINK)."
         )
         private final List<Integer> ids;
