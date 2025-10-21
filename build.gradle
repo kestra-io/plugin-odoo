@@ -180,7 +180,7 @@ tasks.withType(GenerateModuleMetadata).configureEach {
 jar {
     manifest {
         attributes(
-                "X-Kestra-Name": "project.name",
+                "X-Kestra-Name": project.name,
                 "X-Kestra-Title": "Odoo",
                 "X-Kestra-Group": project.group + ".odoo",
                 "X-Kestra-Description": project.description,
