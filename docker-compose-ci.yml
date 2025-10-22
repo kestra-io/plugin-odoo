@@ -1,14 +1,14 @@
 version: '3.8'
 services:
   postgres:
-    image: postgres:13
+    image: postgres:16
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=odoo
       - POSTGRES_PASSWORD=odoo_password
-      - PGDATA=/var/lib/postgresql/data/pgdata
+      - PGDATA=/var/lib/postgresql/pgdata
     volumes:
-      - db:/var/lib/postgresql/data/pgdata
+      - db:/var/lib/postgresql/pgdata
     ports:
       - "127.0.0.1:5433:5432" # to avoid conflicts with Kestra's PG port (5432)
     healthcheck:
@@ -19,7 +19,7 @@ services:
       start_period: 10s
 
   odoo:
-    image: odoo:15.0
+    image: odoo:17
     depends_on:
       postgres:
         condition: service_healthy

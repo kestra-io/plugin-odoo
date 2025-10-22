@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  */
 @KestraTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@EnabledIfEnvironmentVariable(named = "ODOO_INTEGRATION_TESTS", matches = "true")
 class LocalOdooIntegrationTest {
 
     @Inject
@@ -59,7 +58,6 @@ class LocalOdooIntegrationTest {
         Query.Output output = countTask.run(runContext);
 
         assertThat("Should connect to Odoo and count partners", output.getSize(), greaterThan(0L));
-        System.out.println("✅ Found " + output.getSize() + " partners in Odoo");
     }
 
     @Test
@@ -102,7 +100,6 @@ class LocalOdooIntegrationTest {
             "name", "Kestra Test Partner - " + System.currentTimeMillis(),
             "email", "kestra-test@example.com",
             "is_company", true,
-            "customer_rank", 1,
             "comment", "Created by Kestra Odoo Plugin Integration Test"
         );
 
@@ -127,7 +124,6 @@ class LocalOdooIntegrationTest {
 
         // Store the created ID for later tests
         createdPartnerId = output.getIds().get(0);
-        System.out.println("✅ Created partner: " + newPartnerData.get("name") + " (ID: " + createdPartnerId + ")");
     }
 
     @Test
@@ -158,7 +154,6 @@ class LocalOdooIntegrationTest {
         Query.Output output = updateTask.run(runContext);
 
         assertThat("Should update partner", output.getSize(), equalTo(1L));
-        System.out.println("✅ Updated partner ID " + createdPartnerId + " with phone: " + updateData.get("phone"));
     }
 
     @Test
@@ -186,7 +181,6 @@ class LocalOdooIntegrationTest {
 
         assertThat("Should read the updated partner", output.getRow(), notNullValue());
         assertThat("Partner should have updated phone", output.getRow().get("phone"), equalTo("+1-555-KESTRA"));
-        System.out.println("✅ Verified update - Partner phone: " + output.getRow().get("phone"));
     }
 
     @Test
@@ -218,7 +212,6 @@ class LocalOdooIntegrationTest {
         if (!output.getRows().isEmpty()) {
             Map<String, Object> firstResult = output.getRows().get(0);
             assertThat("Result should contain ID", firstResult, hasKey("id"));
-            System.out.println("✅ Found partner IDs: " + output.getRows().size() + " results");
         }
     }
 
@@ -244,7 +237,6 @@ class LocalOdooIntegrationTest {
         Query.Output output = deleteTask.run(runContext);
 
         assertThat("Should delete partner", output.getSize(), equalTo(1L));
-        System.out.println("✅ Deleted partner ID " + createdPartnerId);
     }
 
     @Test
@@ -271,21 +263,5 @@ class LocalOdooIntegrationTest {
         Query.Output output = searchTask.run(runContext);
 
         assertThat("Deleted partner should not be found", output.getSize(), equalTo(0L));
-        System.out.println("✅ Confirmed deletion - Partner no longer exists");
-    }
-
-    @AfterAll
-    static void tearDown() {
-        System.out.println("\n🎉 All integration tests completed successfully!");
-        System.out.println("📋 Tests demonstrated:");
-        System.out.println("  ✅ Connection to local Odoo instance");
-        System.out.println("  ✅ SEARCH_COUNT operation");
-        System.out.println("  ✅ SEARCH_READ operation with filters and field selection");
-        System.out.println("  ✅ CREATE operation with new partner data and ID capture");
-        System.out.println("  ✅ WRITE operation to update partner");
-        System.out.println("  ✅ READ operation to fetch specific records");
-        System.out.println("  ✅ SEARCH operation to get record IDs");
-        System.out.println("  ✅ UNLINK operation to delete records");
-        System.out.println("  ✅ Full CRUD cycle validation with proper ID handling");
     }
 }
