@@ -97,7 +97,28 @@ import java.util.Map;
                       active: true
                       category_id: [[6, 0, [1, 2]]]
                 """
-        )
+        ),
+        @Example(
+            full = true,
+            title = "Read specific partner records by ID.",
+            code = """
+                id: read_partners
+                namespace: company.team
+
+                tasks:
+                  - id: read_partners
+                    type: io.kestra.plugin.odoo.Query
+                    url: http://localhost:8069
+                    db: demo
+                    username: test@demo.com
+                    password: "{{ secret('ODOO_PASSWORD') }}"
+                    model: res.partner
+                    operation: READ
+                    ids: [1, 2, 3]
+                    fields: ["name", "email", "phone"]
+                    fetchType: FETCH
+                """
+        ),
     }
 )
 public class Query extends Task implements RunnableTask<Query.Output> {

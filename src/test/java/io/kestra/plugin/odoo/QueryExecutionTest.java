@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * These tests require network access and are enabled only when ODOO_INTEGRATION_TESTS=true.
  */
 @KestraTest
-@EnabledIfEnvironmentVariable(named = "ODOO_INTEGRATION_TESTS", matches = "true")
 class QueryExecutionTest {
 
     @Inject
@@ -40,11 +39,10 @@ class QueryExecutionTest {
     @Test
     void shouldExecuteSearchReadOperation() throws Exception {
         Query task = Query.builder()
-            .url(Property.ofValue("https://demo.odoo.com"))
+            .url(Property.ofValue("http://localhost:8069"))
             .db(Property.ofValue("demo"))
-            .username(Property.ofValue("demo"))
-            .password(Property.ofValue("demo"))
-            .model(Property.ofValue("res.partner"))
+            .username(Property.ofValue("test@demo.com"))
+            .password(Property.ofValue("admin")).model(Property.ofValue("res.partner"))
             .operation(Property.ofValue(Operation.SEARCH_READ))
             .fields(Property.ofValue(Arrays.asList("name", "email")))
             .limit(Property.ofValue(5))
@@ -78,10 +76,10 @@ class QueryExecutionTest {
     @Test
     void shouldExecuteSearchCountOperation() throws Exception {
         Query task = Query.builder()
-            .url(Property.ofValue("https://demo.odoo.com"))
+            .url(Property.ofValue("http://localhost:8069"))
             .db(Property.ofValue("demo"))
-            .username(Property.ofValue("demo"))
-            .password(Property.ofValue("demo"))
+            .username(Property.ofValue("test@demo.com"))
+            .password(Property.ofValue("admin"))
             .model(Property.ofValue("res.users"))
             .operation(Property.ofValue(Operation.SEARCH_COUNT))
             .build();
@@ -107,10 +105,10 @@ class QueryExecutionTest {
         );
 
         Query task = Query.builder()
-            .url(Property.ofValue("https://demo.odoo.com"))
+            .url(Property.ofValue("http://localhost:8069"))
             .db(Property.ofValue("demo"))
-            .username(Property.ofValue("demo"))
-            .password(Property.ofValue("demo"))
+            .username(Property.ofValue("test@demo.com"))
+            .password(Property.ofValue("admin"))
             .model(Property.ofValue("res.users"))
             .operation(Property.ofValue(Operation.SEARCH))
             .filters(Property.ofValue(filters))
@@ -138,9 +136,9 @@ class QueryExecutionTest {
     @Test
     void shouldHandleAuthenticationFailure() {
         Query task = Query.builder()
-            .url(Property.ofValue("https://demo.odoo.com"))
+            .url(Property.ofValue("http://localhost:8069"))
             .db(Property.ofValue("demo"))
-            .username(Property.ofValue("invalid_user"))
+            .username(Property.ofValue("test@demo.com"))
             .password(Property.ofValue("invalid_password"))
             .model(Property.ofValue("res.partner"))
             .operation(Property.ofValue(Operation.SEARCH_READ))
@@ -157,10 +155,10 @@ class QueryExecutionTest {
     @Test
     void shouldHandleInvalidModel() {
         Query task = Query.builder()
-            .url(Property.ofValue("https://demo.odoo.com"))
+            .url(Property.ofValue("http://localhost:8069"))
             .db(Property.ofValue("demo"))
-            .username(Property.ofValue("demo"))
-            .password(Property.ofValue("demo"))
+            .username(Property.ofValue("test@demo.com"))
+            .password(Property.ofValue("admin"))
             .model(Property.ofValue("invalid.model"))
             .operation(Property.ofValue(Operation.SEARCH_READ))
             .build();

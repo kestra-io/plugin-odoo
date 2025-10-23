@@ -84,6 +84,11 @@ public class OdooClient {
 
         try {
             Object result = objectClient.execute("execute_kw", params);
+
+            if (result instanceof Object[]) {
+                result = Arrays.asList((Object[]) result);
+            }
+
             log.debug("Operation {}.{} completed successfully", model, method);
             return result;
         } catch (Exception e) {

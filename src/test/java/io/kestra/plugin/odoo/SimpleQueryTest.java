@@ -5,6 +5,7 @@ import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.common.FetchType;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
+import io.kestra.core.utils.IdUtils;
 import io.kestra.core.utils.TestsUtils;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
@@ -47,17 +48,16 @@ class SimpleQueryTest {
 
 
     @Test
-    @EnabledIfEnvironmentVariable(named = "ODOO_INTEGRATION_TESTS", matches = "true")
     void shouldCreateTaskWithOptionalProperties() throws Exception {
         List<String> fields = Arrays.asList("name", "email");
 
         Query fullTask = Query.builder()
-            .id("full-task")
+            .id("full-task" + IdUtils.create())
             .type(Query.class.getName())
-            .url(Property.ofValue("https://demo.odoo.com"))
+            .url(Property.ofValue("http://localhost:8069"))
             .db(Property.ofValue("demo"))
-            .username(Property.ofValue("demo"))
-            .password(Property.ofValue("demo"))
+            .username(Property.ofValue("test@demo.com"))
+            .password(Property.ofValue("admin"))
             .model(Property.ofValue("res.partner"))
             .operation(Property.ofValue(Operation.SEARCH_READ))
             .fields(Property.ofValue(fields))
@@ -90,7 +90,6 @@ class SimpleQueryTest {
     }
 
     @Test
-    @EnabledIfEnvironmentVariable(named = "ODOO_INTEGRATION_TESTS", matches = "true")
     void shouldCreateTaskWithFilters() throws Exception {
         // Create filters as a List of Lists
         List<List<Object>> filters = Arrays.asList(
@@ -100,10 +99,10 @@ class SimpleQueryTest {
         Query taskWithFilters = Query.builder()
             .id("filter-task")
             .type(Query.class.getName())
-            .url(Property.ofValue("https://demo.odoo.com"))
+            .url(Property.ofValue("http://localhost:8069"))
             .db(Property.ofValue("demo"))
-            .username(Property.ofValue("demo"))
-            .password(Property.ofValue("demo"))
+            .username(Property.ofValue("test@demo.com"))
+            .password(Property.ofValue("admin"))
             .model(Property.ofValue("res.partner"))
             .operation(Property.ofValue(Operation.SEARCH_READ))
             .filters(Property.ofValue(filters))
@@ -133,7 +132,6 @@ class SimpleQueryTest {
     }
 
     @Test
-    @EnabledIfEnvironmentVariable(named = "ODOO_INTEGRATION_TESTS", matches = "true")
     void shouldSupportAllOperations() throws Exception {
         // Test only read operations that are safe to execute
         Operation[] safeOps = {Operation.SEARCH_READ, Operation.SEARCH, Operation.SEARCH_COUNT};
@@ -142,10 +140,10 @@ class SimpleQueryTest {
             Query opTask = Query.builder()
                 .id("op-task-" + operation.getValue())
                 .type(Query.class.getName())
-                .url(Property.ofValue("https://demo.odoo.com"))
+                .url(Property.ofValue("http://localhost:8069"))
                 .db(Property.ofValue("demo"))
-                .username(Property.ofValue("demo"))
-                .password(Property.ofValue("demo"))
+                .username(Property.ofValue("test@demo.com"))
+                .password(Property.ofValue("admin"))
                 .model(Property.ofValue("res.partner"))
                 .operation(Property.ofValue(operation))
                 .limit(Property.ofValue(1))
@@ -176,7 +174,6 @@ class SimpleQueryTest {
     }
 
     @Test
-    @EnabledIfEnvironmentVariable(named = "ODOO_INTEGRATION_TESTS", matches = "true")
     void shouldExecuteSearchCountAndReturnValidOutput() throws Exception {
         Query countTask = Query.builder()
             .id("count-task")
@@ -206,7 +203,6 @@ class SimpleQueryTest {
     }
 
     @Test
-    @EnabledIfEnvironmentVariable(named = "ODOO_INTEGRATION_TESTS", matches = "true")
     void shouldExecuteSearchReadAndReturnValidOutput() throws Exception {
         Query searchTask = Query.builder()
             .id("search-task")
