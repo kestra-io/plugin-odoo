@@ -1,6 +1,8 @@
 package io.kestra.plugin.odoo;
 
+import io.kestra.core.exceptions.KestraRuntimeException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 
@@ -43,15 +45,21 @@ public class OdooAuthenticator {
         log.debug("Authenticating with Odoo server: {}", url);
 
         try {
-            int uid = (int) commonClient.execute("authenticate", Arrays.asList(
+            Object result = commonClient.execute("authenticate", Arrays.asList(
                 database, username, password, Collections.emptyMap()
             ));
 
-            log.debug("Authentication successful, user ID: {}", uid);
-            return uid;
+            if (result instanceof Number) {
+                int uid = ((Number) result).intValue();
+                log.debug("Authentication successful, user ID: {}", uid);
+                return uid;
+            }
+
+            throw new KestraRuntimeException("Unexpected authentication response from Odoo: " + result);
+
         } catch (Exception e) {
-            log.error("Authentication failed for user '{}' on database '{}': {}", username, database, e.getMessage());
-            throw new Exception("Failed to authenticate with Odoo: " + e.getMessage(), e);
+            log.error("Authentication failed for user '{}' on database '{}': {}", username, database, e.getMessage(), e);
+            throw new KestraRuntimeException("Failed to authenticate with Odoo: " + e.getMessage(), e);
         }
     }
 
