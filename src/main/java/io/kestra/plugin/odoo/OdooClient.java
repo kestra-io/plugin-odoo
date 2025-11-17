@@ -3,7 +3,6 @@ package io.kestra.plugin.odoo;
 
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
-import org.slf4j.Logger;
 
 import java.net.MalformedURLException;
 import java.net.URL;
