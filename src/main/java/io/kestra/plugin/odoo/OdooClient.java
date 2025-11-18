@@ -72,7 +72,7 @@ public class OdooClient {
      * @return The result of the operation
      * @throws Exception if the operation fails
      */
-    public Object executeKw(String model, String method, List<Object> args, Map<String, Object> kwargs) throws Exception {
+    public Object executeKw(String model, String method, List<Object> args, Map<String, Object> kwargs ,  Logger logger ) throws Exception {
         if (uid == null) {
             throw new IllegalStateException("Not authenticated. Call authenticate() first.");
         }
