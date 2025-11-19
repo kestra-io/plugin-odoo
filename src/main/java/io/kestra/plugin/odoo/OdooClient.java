@@ -3,6 +3,7 @@ package io.kestra.plugin.odoo;
 
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+import org.slf4j.Logger;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -26,12 +27,12 @@ public class OdooClient {
     private Integer uid;
     private final Logger logger;
 
-    public OdooClient(String url, String database, String username, String password , Logger logger) throws MalformedURLException {
+    public OdooClient(String url, String database, String username, String password, Logger logger) throws MalformedURLException {
         this.url = url;
         this.database = database;
         this.username = username;
         this.password = password;
-        this.logger = logger; 
+        this.logger = logger;
 
         // Initialize authenticator
         this.authenticator = new OdooAuthenticator(url, database, username, password);
@@ -72,7 +73,7 @@ public class OdooClient {
      * @return The result of the operation
      * @throws Exception if the operation fails
      */
-    public Object executeKw(String model, String method, List<Object> args, Map<String, Object> kwargs ,  Logger logger ) throws Exception {
+    public Object executeKw(String model, String method, List<Object> args, Map<String, Object> kwargs) throws Exception {
         if (uid == null) {
             throw new IllegalStateException("Not authenticated. Call authenticate() first.");
         }

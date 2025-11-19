@@ -226,7 +226,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
         logger.info("Connecting to Odoo server: {} with database: {}", rUrl, rDb);
 
         // Initialize Odoo client and authenticate
-        OdooClient odooClient = new OdooClient(rUrl, rDb, rUsername, rPassword);
+        OdooClient odooClient = new OdooClient(rUrl, rDb, rUsername, rPassword, logger);
         odooClient.authenticate();
 
         logger.info("Authentication successful. Executing {} operation on model {}", rOperation.getValue(), rModel);
@@ -250,22 +250,19 @@ public class Query extends Task implements RunnableTask<Query.Output> {
             }
 
             case CREATE: {
-                Integer createId = executeCreate(runContext, odooClient, rModel);
-                result = createId;
+                result = executeCreate(runContext, odooClient, rModel);
                 recordCount = 1;
                 break;
             }
 
             case WRITE: {
-                Boolean writeSuccess = executeWrite(runContext, odooClient, rModel);
-                result = writeSuccess;
+                result = executeWrite(runContext, odooClient, rModel);
                 recordCount = runContext.render(this.ids).asList(Integer.class).size();
                 break;
             }
 
             case UNLINK: {
-                Boolean unlinkSuccess = executeUnlink(runContext, odooClient, rModel);
-                result = unlinkSuccess;
+                result = executeUnlink(runContext, odooClient, rModel);
                 recordCount = runContext.render(this.ids).asList(Integer.class).size();
                 break;
             }
