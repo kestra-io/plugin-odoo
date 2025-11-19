@@ -1,8 +1,9 @@
 package io.kestra.plugin.odoo;
 
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+import org.slf4j.Logger;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -15,7 +16,7 @@ import java.util.Map;
  * XML-RPC client for communicating with Odoo ERP system.
  * Handles authentication and model operations via Odoo's XML-RPC API.
  */
-@Slf4j
+
 public class OdooClient {
     private final String url;
     private final String database;
@@ -24,12 +25,14 @@ public class OdooClient {
     private final XmlRpcClient objectClient;
     private final OdooAuthenticator authenticator;
     private Integer uid;
+    private final Logger logger;
 
-    public OdooClient(String url, String database, String username, String password) throws MalformedURLException {
+    public OdooClient(String url, String database, String username, String password, Logger logger) throws MalformedURLException {
         this.url = url;
         this.database = database;
         this.username = username;
         this.password = password;
+        this.logger = logger;
 
         // Initialize authenticator
         this.authenticator = new OdooAuthenticator(url, database, username, password);
@@ -75,7 +78,7 @@ public class OdooClient {
             throw new IllegalStateException("Not authenticated. Call authenticate() first.");
         }
 
-        log.debug("Executing {}.{} with args: {}", model, method, args);
+        logger.debug("Executing {}.{} with args: {}", model, method, args);
 
         List<Object> params = Arrays.asList(database, uid, password, model, method, args);
         if (kwargs != null && !kwargs.isEmpty()) {
@@ -89,10 +92,10 @@ public class OdooClient {
                 result = Arrays.asList((Object[]) result);
             }
 
-            log.debug("Operation {}.{} completed successfully", model, method);
+            logger.debug("Operation {}.{} completed successfully", model, method);
             return result;
         } catch (Exception e) {
-            log.error("Failed to execute {}.{}: {}", model, method, e.getMessage());
+            logger.error("Failed to execute {}.{}: {}", model, method, e.getMessage());
             throw new Exception(String.format("Failed to execute %s.%s: %s", model, method, e.getMessage()), e);
         }
     }
