@@ -8,26 +8,27 @@ import io.kestra.core.runners.RunContextFactory;
 import io.kestra.core.utils.TestsUtils;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * Integration tests that run against a local Odoo instance.
  * These tests demonstrate the full CRUD cycle and are used for QA validation.
- *
+ * <p>
  * To run these tests:
- * 1. Start local Odoo: ./.github/setup-unit.sh
+ * 1. Start local Odoo: .github/setup-unit.sh
  * 2. Run tests: ODOO_INTEGRATION_TESTS=true ./gradlew test
  */
 @KestraTest
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class LocalOdooIntegrationTest {
+class OdooIT {
 
     @Inject
     RunContextFactory runContextFactory;
@@ -85,7 +86,7 @@ class LocalOdooIntegrationTest {
         assertThat("Should respect limit", output.getRows().size(), lessThanOrEqualTo(5));
 
         if (!output.getRows().isEmpty()) {
-            Map<String, Object> firstPartner = output.getRows().get(0);
+            Map<String, Object> firstPartner = output.getRows().getFirst();
             assertThat("Partner should have ID", firstPartner, hasKey("id"));
             assertThat("Partner should have name", firstPartner, hasKey("name"));
             System.out.println("✅ Retrieved partner: " + firstPartner.get("name"));
@@ -123,7 +124,7 @@ class LocalOdooIntegrationTest {
         assertThat("Should return exactly one ID", output.getIds().size(), equalTo(1));
 
         // Store the created ID for later tests
-        createdPartnerId = output.getIds().get(0);
+        createdPartnerId = output.getIds().getFirst();
     }
 
     @Test
@@ -146,7 +147,7 @@ class LocalOdooIntegrationTest {
             .password(Property.ofValue(ODOO_PASSWORD))
             .model(Property.ofValue("res.partner"))
             .operation(Property.ofValue(Operation.WRITE))
-            .ids(Property.ofValue(Arrays.asList(createdPartnerId)))
+            .ids(Property.ofValue(List.of(createdPartnerId)))
             .values(Property.ofValue(updateData))
             .build();
 
@@ -171,7 +172,7 @@ class LocalOdooIntegrationTest {
             .password(Property.ofValue(ODOO_PASSWORD))
             .model(Property.ofValue("res.partner"))
             .operation(Property.ofValue(Operation.READ))
-            .ids(Property.ofValue(Arrays.asList(createdPartnerId)))
+            .ids(Property.ofValue(List.of(createdPartnerId)))
             .fields(Property.ofValue(Arrays.asList("id", "name", "email", "phone", "comment", "write_date")))
             .fetchType(Property.ofValue(FetchType.FETCH_ONE))
             .build();
@@ -196,7 +197,7 @@ class LocalOdooIntegrationTest {
             .password(Property.ofValue(ODOO_PASSWORD))
             .model(Property.ofValue("res.partner"))
             .operation(Property.ofValue(Operation.SEARCH))
-            .filters(Property.ofValue(Arrays.asList(
+            .filters(Property.ofValue(List.of(
                 Arrays.asList("is_company", "=", true)
             )))
             .limit(Property.ofValue(3))
@@ -210,7 +211,7 @@ class LocalOdooIntegrationTest {
         assertThat("Should respect limit", output.getRows().size(), lessThanOrEqualTo(3));
 
         if (!output.getRows().isEmpty()) {
-            Map<String, Object> firstResult = output.getRows().get(0);
+            Map<String, Object> firstResult = output.getRows().getFirst();
             assertThat("Result should contain ID", firstResult, hasKey("id"));
         }
     }
@@ -230,7 +231,7 @@ class LocalOdooIntegrationTest {
             .password(Property.ofValue(ODOO_PASSWORD))
             .model(Property.ofValue("res.partner"))
             .operation(Property.ofValue(Operation.UNLINK))
-            .ids(Property.ofValue(Arrays.asList(createdPartnerId)))
+            .ids(Property.ofValue(List.of(createdPartnerId)))
             .build();
 
         RunContext runContext = TestsUtils.mockRunContext(runContextFactory, deleteTask, Map.of());
@@ -254,7 +255,7 @@ class LocalOdooIntegrationTest {
             .password(Property.ofValue(ODOO_PASSWORD))
             .model(Property.ofValue("res.partner"))
             .operation(Property.ofValue(Operation.SEARCH_COUNT))
-            .filters(Property.ofValue(Arrays.asList(
+            .filters(Property.ofValue(List.of(
                 Arrays.asList("id", "=", createdPartnerId)
             )))
             .build();

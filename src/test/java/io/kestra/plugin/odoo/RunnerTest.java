@@ -18,7 +18,7 @@ public class RunnerTest {
         assertThat(execution.getTaskRunList()).isNotEmpty();
 
         // Should have the first task executed
-        assertThat(execution.getTaskRunList().get(0).getTaskId()).isEqualTo("query_partners");
+        assertThat(execution.getTaskRunList().getFirst().getTaskId()).isEqualTo("query_partners");
 
         // Accept either SUCCESS or FAILED (depending on database initialization status)
         assertThat(execution.getState().getCurrent()).isIn(State.Type.SUCCESS, State.Type.FAILED);
@@ -31,12 +31,12 @@ public class RunnerTest {
             assertThat(execution.getTaskRunList().get(1).getTaskId()).isEqualTo("count_users");
 
             // Both tasks should complete successfully
-            assertThat(execution.getTaskRunList().get(0).getState().getCurrent()).isEqualTo(State.Type.SUCCESS);
+            assertThat(execution.getTaskRunList().getFirst().getState().getCurrent()).isEqualTo(State.Type.SUCCESS);
             assertThat(execution.getTaskRunList().get(1).getState().getCurrent()).isEqualTo(State.Type.SUCCESS);
         } else {
             // If failed, at least verify the first task ran
             assertThat(execution.getTaskRunList()).hasSizeGreaterThanOrEqualTo(1);
-            assertThat(execution.getTaskRunList().get(0).getState().getCurrent()).isEqualTo(State.Type.FAILED);
+            assertThat(execution.getTaskRunList().getFirst().getState().getCurrent()).isEqualTo(State.Type.FAILED);
         }
     }
 }

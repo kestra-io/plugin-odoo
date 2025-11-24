@@ -6,7 +6,7 @@ import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.slf4j.Logger;
 
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -18,9 +18,7 @@ import java.util.Map;
  */
 
 public class OdooClient {
-    private final String url;
     private final String database;
-    private final String username;
     private final String password;
     private final XmlRpcClient objectClient;
     private final OdooAuthenticator authenticator;
@@ -28,9 +26,7 @@ public class OdooClient {
     private final Logger logger;
 
     public OdooClient(String url, String database, String username, String password, Logger logger) throws MalformedURLException {
-        this.url = url;
         this.database = database;
-        this.username = username;
         this.password = password;
         this.logger = logger;
 
@@ -40,7 +36,7 @@ public class OdooClient {
         // Initialize object endpoint client for model operations
         this.objectClient = new XmlRpcClient();
         XmlRpcClientConfigImpl objectConfig = new XmlRpcClientConfigImpl();
-        objectConfig.setServerURL(new URL(String.format("%s/xmlrpc/2/object", url)));
+        objectConfig.setServerURL(URI.create(String.format("%s/xmlrpc/2/object", url)).toURL());
         this.objectClient.setConfig(objectConfig);
     }
 

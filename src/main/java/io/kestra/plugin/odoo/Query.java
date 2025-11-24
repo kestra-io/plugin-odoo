@@ -321,7 +321,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
                         @SuppressWarnings("unchecked")
                         List<?> resultList = (List<?>) result;
                         if (!resultList.isEmpty()) {
-                            outputBuilder.row(Map.of("id", resultList.get(0)));
+                            outputBuilder.row(Map.of("id", resultList.getFirst()));
                         }
                     }
                     break;
@@ -379,7 +379,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
         // Handle fetchType logic
         switch (fetchType) {
             case FETCH_ONE:
-                return records.isEmpty() ? null : records.get(0);
+                return records.isEmpty() ? null : records.getFirst();
             case NONE:
                 return null;
             case STORE:
@@ -407,7 +407,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
         // Handle fetchType logic
         switch (fetchType) {
             case FETCH_ONE:
-                return records.isEmpty() ? null : records.get(0);
+                return records.isEmpty() ? null : records.getFirst();
             case NONE:
                 return null;
             case STORE:
@@ -479,7 +479,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
         // Handle fetchType logic
         switch (fetchType) {
             case FETCH_ONE:
-                return ids.isEmpty() ? null : ids.get(0);
+                return ids.isEmpty() ? null : ids.getFirst();
             case NONE:
                 return null;
             case STORE:
