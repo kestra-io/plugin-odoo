@@ -1,8 +1,8 @@
 group: io.kestra.plugin.odoo
 name: "odoo"
 title: "Odoo"
-description: "Integrate with Odoo ERP system via XML-RPC API for data orchestration and workflow automation."
-body: ""
+description: "Tasks that call the Odoo XML-RPC API for ERP automation."
+body: "Provide the Odoo server URL, database, username, and password to authenticate, then run create, read, update, or search operations on models; include model name, fields, and filters to orchestrate ERP data from Kestra flows."
 videos: []
 createdBy: "Kestra Core Team"
 managedBy: "Kestra Core Team"
