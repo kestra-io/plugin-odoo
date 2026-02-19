@@ -24,10 +24,9 @@ import java.util.Map;
 @Getter
 @NoArgsConstructor
 @Schema(
-    title = "Query Odoo ERP system via XML-RPC API.",
-    description = "This task interacts with Odoo models using XML-RPC API. " +
-                  "It supports various operations like search_read, create, write, unlink, search, and search_count. " +
-                  "You can configure the Odoo server connection and specify the model, operation, and parameters."
+    title = "Run Odoo XML-RPC operations",
+    description = "Executes Odoo model calls over XML-RPC (search_read, read, create, write, unlink, search, search_count). " +
+                  "Requires URL, database, and user credentials; fetchType defaults to NONE so results are ignored unless explicitly fetched or stored."
 )
 @Plugin(
     examples = {
@@ -125,86 +124,85 @@ public class Query extends Task implements RunnableTask<Query.Output> {
 
     @Schema(
         title = "Odoo server URL",
-        description = "The base URL of your Odoo instance (e.g., https://my-odoo-instance.com)"
+        description = "Base URL of the target Odoo instance, including scheme and port"
     )
     @NotNull
     private Property<String> url;
 
     @Schema(
         title = "Database name",
-        description = "The name of the Odoo database to connect to"
+        description = "Odoo database to connect to"
     )
     @NotNull
     private Property<String> db;
 
     @Schema(
         title = "Username",
-        description = "Odoo username for authentication"
+        description = "Odoo login used for XML-RPC authentication"
     )
     @NotNull
     private Property<String> username;
 
     @Schema(
         title = "Password",
-        description = "Odoo password for authentication"
+        description = "Password for the provided Odoo username"
     )
     @NotNull
     private Property<String> password;
 
     @Schema(
         title = "Model name",
-        description = "The Odoo model to operate on (e.g., 'res.partner', 'sale.order', 'product.product')"
+        description = "Technical model name to target (e.g., res.partner, sale.order)"
     )
     @NotNull
     private Property<String> model;
 
     @Schema(
         title = "Operation",
-        description = "The operation to perform on the model"
+        description = "Operation to run: SEARCH_READ, READ, CREATE, WRITE, UNLINK, SEARCH, or SEARCH_COUNT"
     )
     @NotNull
     private Property<Operation> operation;
 
     @Schema(
         title = "Search filters",
-        description = "Domain filters for search operations. Each filter is a list of [field, operator, value]. " +
-                      "Multiple filters are combined with AND logic. Example: [[\"is_company\", \"=\", true], [\"customer_rank\", \">\", 0]]"
+        description = "Domain filters for search* operations; each item is [field, operator, value] and filters are ANDed. Example: [[\"is_company\", \"=\", true], [\"customer_rank\", \">\", 0]]"
     )
     private Property<List<?>> filters;
 
     @Schema(
         title = "Fields to retrieve",
-        description = "List of field names to retrieve in search_read operations. If not specified, all fields are returned."
+        description = "Fields to return for read/search_read; null lets Odoo return all fields (may be large)"
     )
     private Property<List<String>> fields;
 
     @Schema(
         title = "Values",
-        description = "Field values for create/write operations. Map of field names to values."
+        description = "Field map required for CREATE/WRITE; keys are model fields"
     )
     private Property<Map<String, Object>> values;
 
     @Schema(
         title = "Record IDs",
-        description = "List of record IDs for write/unlink operations"
+        description = "Record IDs required for READ, WRITE, and UNLINK"
     )
     private Property<List<Integer>> ids;
 
     @Schema(
         title = "Limit",
-        description = "Maximum number of records to return (for search operations)"
+        description = "Maximum rows to return for search* operations"
     )
     private Property<Integer> limit;
 
     @Schema(
         title = "Offset",
-        description = "Number of records to skip (for search operations)"
+        description = "Rows to skip before returning results for search* operations"
     )
     private Property<Integer> offset;
 
     @Schema(
         title = "Fetch type",
-        description = "How to handle query results. STORE: store all rows to a file, FETCH: output all rows as output variable, FETCH_ONE: output the first row, NONE: do nothing (default for non-read operations)"
+        description = "Controls output handling: STORE writes rows, FETCH emits all, FETCH_ONE emits first, NONE skips output (default)"
     )
     @NotNull
     @Builder.Default
