@@ -1,18 +1,20 @@
 package io.kestra.plugin.odoo;
 
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.jupiter.api.*;
+
 import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.common.FetchType;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
 import io.kestra.core.utils.TestsUtils;
-import jakarta.inject.Inject;
-import org.junit.jupiter.api.*;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import jakarta.inject.Inject;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -197,9 +199,13 @@ class OdooIT {
             .password(Property.ofValue(ODOO_PASSWORD))
             .model(Property.ofValue("res.partner"))
             .operation(Property.ofValue(Operation.SEARCH))
-            .filters(Property.ofValue(List.of(
-                Arrays.asList("is_company", "=", true)
-            )))
+            .filters(
+                Property.ofValue(
+                    List.of(
+                        Arrays.asList("is_company", "=", true)
+                    )
+                )
+            )
             .limit(Property.ofValue(3))
             .fetchType(Property.ofValue(FetchType.FETCH))
             .build();
@@ -255,9 +261,13 @@ class OdooIT {
             .password(Property.ofValue(ODOO_PASSWORD))
             .model(Property.ofValue("res.partner"))
             .operation(Property.ofValue(Operation.SEARCH_COUNT))
-            .filters(Property.ofValue(List.of(
-                Arrays.asList("id", "=", createdPartnerId)
-            )))
+            .filters(
+                Property.ofValue(
+                    List.of(
+                        Arrays.asList("id", "=", createdPartnerId)
+                    )
+                )
+            )
             .build();
 
         RunContext runContext = TestsUtils.mockRunContext(runContextFactory, searchTask, Map.of());

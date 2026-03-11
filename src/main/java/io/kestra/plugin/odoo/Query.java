@@ -1,5 +1,12 @@
 package io.kestra.plugin.odoo;
 
+import java.io.IOException;
+import java.net.URI;
+import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Plugin;
 import io.kestra.core.models.property.Property;
@@ -7,16 +14,11 @@ import io.kestra.core.models.tasks.RunnableTask;
 import io.kestra.core.models.tasks.Task;
 import io.kestra.core.models.tasks.common.FetchType;
 import io.kestra.core.runners.RunContext;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.slf4j.Logger;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
 
 @SuperBuilder
 @ToString
@@ -26,7 +28,7 @@ import java.util.Map;
 @Schema(
     title = "Run Odoo XML-RPC operations",
     description = "Executes Odoo model calls over XML-RPC (search_read, read, create, write, unlink, search, search_count). " +
-                  "Requires URL, database, and user credentials; fetchType defaults to NONE so results are ignored unless explicitly fetched or stored."
+        "Requires URL, database, and user credentials; fetchType defaults to NONE so results are ignored unless explicitly fetched or stored."
 )
 @Plugin(
     examples = {
@@ -280,8 +282,10 @@ public class Query extends Task implements RunnableTask<Query.Output> {
             }
 
             default:
-                throw new IllegalArgumentException("Unsupported operation: " + rOperation.getValue() +
-                    ". Supported operations are: search_read, read, create, write, unlink, search, search_count");
+                throw new IllegalArgumentException(
+                    "Unsupported operation: " + rOperation.getValue() +
+                        ". Supported operations are: search_read, read, create, write, unlink, search, search_count"
+                );
         }
 
         logger.info("Operation {} completed successfully. Records affected/returned: {}", rOperation.getValue(), recordCount);
@@ -328,7 +332,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
                         @SuppressWarnings("unchecked")
                         List<?> resultList = (List<?>) result;
                         List<Map<String, Object>> convertedIds = resultList.stream()
-                            .map(id -> Map.<String, Object>of("id", id))
+                            .map(id -> Map.<String, Object> of("id", id))
                             .toList();
                         outputBuilder.rows(convertedIds);
                     }
@@ -483,7 +487,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
             case STORE:
                 // For SEARCH operation, we need to convert IDs to a proper format for storage
                 List<Map<String, Object>> convertedIds = ids.stream()
-                    .map(id -> Map.<String, Object>of("id", id))
+                    .map(id -> Map.<String, Object> of("id", id))
                     .toList();
                 return storeRecordsAsFile(runContext, convertedIds);
             case FETCH:
@@ -529,8 +533,13 @@ public class Query extends Task implements RunnableTask<Query.Output> {
             this.count = count;
         }
 
-        public URI getUri() { return uri; }
-        public int getCount() { return count; }
+        public URI getUri() {
+            return uri;
+        }
+
+        public int getCount() {
+            return count;
+        }
     }
 
     /**

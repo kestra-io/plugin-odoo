@@ -1,5 +1,12 @@
 package io.kestra.plugin.odoo;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.common.FetchType;
@@ -7,13 +14,8 @@ import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
 import io.kestra.core.utils.IdUtils;
 import io.kestra.core.utils.TestsUtils;
-import jakarta.inject.Inject;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import jakarta.inject.Inject;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -142,7 +144,7 @@ class QueryTest {
     @Test
     void shouldSupportAllOperations() throws Exception {
         // Test only read operations that are safe to execute
-        Operation[] safeOps = {Operation.SEARCH_READ, Operation.SEARCH, Operation.SEARCH_COUNT};
+        Operation[] safeOps = { Operation.SEARCH_READ, Operation.SEARCH, Operation.SEARCH_COUNT };
 
         for (Operation operation : safeOps) {
             Query opTask = Query.builder()
@@ -362,7 +364,8 @@ class QueryTest {
             .build();
 
         // Should throw exception for invalid credentials
-        Exception exception = assertThrows(Exception.class, () -> {
+        Exception exception = assertThrows(Exception.class, () ->
+        {
             task.run(runContext);
         });
 
@@ -381,7 +384,8 @@ class QueryTest {
             .build();
 
         // Should throw exception for invalid model
-        Exception exception = assertThrows(Exception.class, () -> {
+        Exception exception = assertThrows(Exception.class, () ->
+        {
             task.run(runContext);
         });
 

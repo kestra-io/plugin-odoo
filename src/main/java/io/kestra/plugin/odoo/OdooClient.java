@@ -1,16 +1,15 @@
 package io.kestra.plugin.odoo;
 
-
-import org.apache.xmlrpc.client.XmlRpcClient;
-import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
-import org.slf4j.Logger;
-
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.xmlrpc.client.XmlRpcClient;
+import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+import org.slf4j.Logger;
 
 /**
  * XML-RPC client for communicating with Odoo ERP system.

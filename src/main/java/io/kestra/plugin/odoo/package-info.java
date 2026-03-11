@@ -1,4 +1,5 @@
-@PluginSubGroup(title = "Odoo", description = "Integrate with Odoo ERP system via XML-RPC API for data orchestration and workflow automation.",categories = { PluginSubGroup.PluginCategory.BUSINESS }
+@PluginSubGroup(
+    title = "Odoo", description = "Integrate with Odoo ERP system via XML-RPC API for data orchestration and workflow automation.", categories = { PluginSubGroup.PluginCategory.BUSINESS }
 )
 package io.kestra.plugin.odoo;
 

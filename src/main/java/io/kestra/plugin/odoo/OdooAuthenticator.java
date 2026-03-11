@@ -1,15 +1,16 @@
 package io.kestra.plugin.odoo;
 
-import io.kestra.core.exceptions.KestraRuntimeException;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.xmlrpc.XmlRpcException;
-import org.apache.xmlrpc.client.XmlRpcClient;
-import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
+
+import org.apache.xmlrpc.client.XmlRpcClient;
+import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+
+import io.kestra.core.exceptions.KestraRuntimeException;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Handles authentication with Odoo ERP system via XML-RPC.
@@ -45,9 +46,11 @@ public class OdooAuthenticator {
         log.debug("Authenticating with Odoo server: {}", url);
 
         try {
-            Object result = commonClient.execute("authenticate", Arrays.asList(
-                database, username, password, Collections.emptyMap()
-            ));
+            Object result = commonClient.execute(
+                "authenticate", Arrays.asList(
+                    database, username, password, Collections.emptyMap()
+                )
+            );
 
             if (result instanceof Number) {
                 int uid = ((Number) result).intValue();
