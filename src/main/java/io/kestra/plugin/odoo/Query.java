@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import io.kestra.core.models.annotations.PluginProperty;
 
 @SuperBuilder
 @ToString
@@ -129,6 +130,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
         description = "Base URL of the target Odoo instance, including scheme and port"
     )
     @NotNull
+    @PluginProperty(group = "main")
     private Property<String> url;
 
     @Schema(
@@ -136,6 +138,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
         description = "Odoo database to connect to"
     )
     @NotNull
+    @PluginProperty(group = "main")
     private Property<String> db;
 
     @Schema(
@@ -143,6 +146,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
         description = "Odoo login used for XML-RPC authentication"
     )
     @NotNull
+    @PluginProperty(group = "main")
     private Property<String> username;
 
     @Schema(
@@ -150,6 +154,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
         description = "Password for the provided Odoo username"
     )
     @NotNull
+    @PluginProperty(group = "main")
     private Property<String> password;
 
     @Schema(
@@ -157,6 +162,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
         description = "Technical model name to target (e.g., res.partner, sale.order)"
     )
     @NotNull
+    @PluginProperty(group = "main")
     private Property<String> model;
 
     @Schema(
@@ -164,42 +170,49 @@ public class Query extends Task implements RunnableTask<Query.Output> {
         description = "Operation to run: SEARCH_READ, READ, CREATE, WRITE, UNLINK, SEARCH, or SEARCH_COUNT"
     )
     @NotNull
+    @PluginProperty(group = "main")
     private Property<Operation> operation;
 
     @Schema(
         title = "Search filters",
         description = "Domain filters for search* operations; each item is [field, operator, value] and filters are ANDed. Example: [[\"is_company\", \"=\", true], [\"customer_rank\", \">\", 0]]"
     )
+    @PluginProperty(group = "processing")
     private Property<List<?>> filters;
 
     @Schema(
         title = "Fields to retrieve",
         description = "Fields to return for read/search_read; null lets Odoo return all fields (may be large)"
     )
+    @PluginProperty(group = "advanced")
     private Property<List<String>> fields;
 
     @Schema(
         title = "Values",
         description = "Field map required for CREATE/WRITE; keys are model fields"
     )
+    @PluginProperty(group = "advanced")
     private Property<Map<String, Object>> values;
 
     @Schema(
         title = "Record IDs",
         description = "Record IDs required for READ, WRITE, and UNLINK"
     )
+    @PluginProperty(group = "advanced")
     private Property<List<Integer>> ids;
 
     @Schema(
         title = "Limit",
         description = "Maximum rows to return for search* operations"
     )
+    @PluginProperty(group = "processing")
     private Property<Integer> limit;
 
     @Schema(
         title = "Offset",
         description = "Rows to skip before returning results for search* operations"
     )
+    @PluginProperty(group = "processing")
     private Property<Integer> offset;
 
     @Schema(
@@ -208,6 +221,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
     )
     @NotNull
     @Builder.Default
+    @PluginProperty(group = "processing")
     private Property<FetchType> fetchType = Property.ofValue(FetchType.NONE);
 
     @Override
