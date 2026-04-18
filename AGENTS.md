@@ -2,11 +2,13 @@
 
 ## What
 
-description = 'Odoo plugin for Kestra Exposes 1 plugin components (tasks, triggers, and/or conditions).
+- Provides plugin components under `io.kestra.plugin.odoo`.
+- Includes classes such as `Operation`, `OdooClient`, `Query`, `OdooAuthenticator`.
 
 ## Why
 
-Enables Kestra workflows to interact with Odoo, allowing orchestration of Odoo-based operations as part of data pipelines and automation workflows.
+- This plugin integrates Kestra with Odoo.
+- It provides tasks that call the Odoo XML-RPC API for ERP automation.
 
 ## How
 
@@ -38,24 +40,7 @@ plugin-odoo/
 └── README.md
 ```
 
-### Important Commands
+## References
 
-```bash
-# Build the plugin
-./gradlew shadowJar
-
-# Run tests
-./gradlew test
-
-# Build without tests
-./gradlew shadowJar -x test
-```
-
-### Configuration
-
-All tasks and triggers accept standard Kestra plugin properties. Credentials should use
-`{{ secret('SECRET_NAME') }}` — never hardcode real values.
-
-## Agents
-
-**IMPORTANT:** This is a Kestra plugin repository (prefixed by `plugin-`, `storage-`, or `secret-`). You **MUST** delegate all coding tasks to the `kestra-plugin-developer` agent. Do NOT implement code changes directly — always use this agent.
+- https://kestra.io/docs/plugin-developer-guide
+- https://kestra.io/docs/plugin-developer-guide/contribution-guidelines
