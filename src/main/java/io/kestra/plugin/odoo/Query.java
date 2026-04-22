@@ -146,7 +146,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
         description = "Odoo login used for XML-RPC authentication"
     )
     @NotNull
-    @PluginProperty(group = "main")
+    @PluginProperty(secret = true, group = "main")
     private Property<String> username;
 
     @Schema(
@@ -154,7 +154,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
         description = "Password for the provided Odoo username"
     )
     @NotNull
-    @PluginProperty(group = "main")
+    @PluginProperty(secret = true, group = "main")
     private Property<String> password;
 
     @Schema(
