@@ -69,37 +69,62 @@ done
 
 echo "✅ Odoo is ready"
 
-# Create the demo database via Odoo's web interface using curl
-echo "🗄️ Creating demo database..."
-
-# First, check if database already exists
-if curl -s -X POST -d "name=demo" http://localhost:8069/web/database/list | grep -q "demo"; then
-    echo "✅ Demo database already exists"
-else
-    # Create database using Odoo's database manager
-    # This simulates the database creation form submission
-    curl -s -X POST \
-        -d "master_pwd=admin" \
-        -d "name=demo" \
-        -d "login=test@demo.com" \
-        -d "password=admin" \
-        -d "phone=" \
-        -d "lang=en_US" \
-        -d "country_code=US" \
-        -d "demo=true" \
-        http://localhost:8069/web/database/create
-
-    # Wait a bit for database creation to complete
-    echo "⏳ Waiting for database creation to complete..."
-    sleep 30
-
-    # Verify database was created
-    if curl -s -X POST -d "name=demo" http://localhost:8069/web/database/list | grep -q "demo"; then
-        echo "✅ Demo database created successfully"
-    else
-        echo "⚠️ Database creation may still be in progress, tests will retry as needed"
+# Verify demo database is accessible and set up test user
+echo "⏳ Verifying demo database is accessible..."
+timeout=60
+elapsed=0
+while ! curl -s -X POST \
+    -H "Content-Type: application/json" \
+    -d '{"jsonrpc":"2.0","method":"call","params":{"service":"common","method":"version","args":[]}}' \
+    http://localhost:8069/jsonrpc 2>/dev/null | grep -q "server_version"; do
+    if [ $elapsed -ge $timeout ]; then
+        echo "❌ Demo database not accessible within ${timeout} seconds"
+        exit 1
     fi
-fi
+    sleep 5
+    elapsed=$((elapsed + 5))
+    echo "⏳ Still waiting for demo database... (${elapsed}/${timeout}s)"
+done
+echo "✅ Demo database is accessible"
+
+# Create test user (test@demo.com) by updating the admin user's login
+echo "👤 Setting up test user test@demo.com..."
+python3 << 'PYTHON_EOF'
+import xmlrpc.client
+import sys
+
+url = 'http://localhost:8069'
+db = 'demo'
+
+try:
+    common = xmlrpc.client.ServerProxy(f'{url}/xmlrpc/2/common')
+    uid = common.authenticate(db, 'admin', 'admin', {})
+
+    if not uid:
+        print('❌ Cannot authenticate as admin to demo database')
+        sys.exit(1)
+
+    models = xmlrpc.client.ServerProxy(f'{url}/xmlrpc/2/object')
+
+    # Check if test@demo.com already exists
+    existing = models.execute_kw(db, uid, 'admin', 'res.users', 'search_count',
+                                  [[['login', '=', 'test@demo.com']]])
+    if existing > 0:
+        print('✅ User test@demo.com already exists')
+        sys.exit(0)
+
+    # Update admin user login to test@demo.com so tests can authenticate
+    models.execute_kw(db, uid, 'admin', 'res.users', 'write', [[uid], {
+        'login': 'test@demo.com',
+        'email': 'test@demo.com',
+        'name': 'Demo Admin',
+    }])
+    print('✅ Updated admin user login to test@demo.com')
+
+except Exception as e:
+    print(f'❌ Failed to set up test user: {e}')
+    sys.exit(1)
+PYTHON_EOF
 
 # Show status
 echo "📊 Container status:"
