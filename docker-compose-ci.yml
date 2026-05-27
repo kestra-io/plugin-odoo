@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   postgres:
     image: postgres:16
@@ -36,17 +35,15 @@ services:
       - ./config:/etc/odoo
     command: >
       bash -c "
-        # Wait a bit more for postgres to be fully ready
         sleep 5 &&
-        # Run Odoo with additional options for testing
-        odoo --database=postgres --db-filter=.* --load-language=en_US --without-demo=false --init=base
+        odoo -d demo --db-filter=.* --load-language=en_US --without-demo=all --init=base
       "
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8069/web/database/selector || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 30
-      start_period: 60s
+      start_period: 120s
 
 volumes:
   data:
