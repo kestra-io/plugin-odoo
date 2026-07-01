@@ -73,7 +73,7 @@ public class OdooClient {
             throw new IllegalStateException("Not authenticated. Call authenticate() first.");
         }
 
-        logger.debug("Executing {}.{} with args: {}", model, method, args);
+        logger.debug("Executing {}.{} with {} argument(s)", model, method, args != null ? args.size() : 0);
 
         List<Object> params = Arrays.asList(database, uid, password, model, method, args);
         if (kwargs != null && !kwargs.isEmpty()) {

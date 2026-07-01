@@ -147,6 +147,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
     )
     @NotNull
     @PluginProperty(secret = true, group = "main")
+    @ToString.Exclude
     private Property<String> username;
 
     @Schema(
@@ -155,6 +156,7 @@ public class Query extends Task implements RunnableTask<Query.Output> {
     )
     @NotNull
     @PluginProperty(secret = true, group = "main")
+    @ToString.Exclude
     private Property<String> password;
 
     @Schema(
