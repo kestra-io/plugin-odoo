@@ -61,7 +61,7 @@ public class OdooAuthenticator {
             throw new KestraRuntimeException("Unexpected authentication response from Odoo: " + result);
 
         } catch (Exception e) {
-            log.error("Authentication failed for user '{}' on database '{}': {}", username, database, e.getMessage(), e);
+            log.error("Authentication failed for user '[REDACTED]' on database '{}': {}", database, e.getMessage(), e);
             throw new KestraRuntimeException("Failed to authenticate with Odoo: " + e.getMessage(), e);
         }
     }
