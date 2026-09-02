@@ -4,7 +4,7 @@ Query and modify records in any Odoo model from Kestra flows via XML-RPC.
 
 ## Authentication
 
-Set `url` to your Odoo server URL, `db` to the database name, `username`, and `password`. Store secrets in [secrets](https://kestra.io/docs/concepts/secret) and apply connection properties globally with [plugin defaults](https://kestra.io/docs/workflow-components/plugin-defaults).
+Set `url` to your Odoo server URL, `db` to the database name, `username`, and `password`. Store secrets in [secrets](https://kestra.io/docs/concepts/secret) and set connection properties on each task.
 
 ## Tasks
 
