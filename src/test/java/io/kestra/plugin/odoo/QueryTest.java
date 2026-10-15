@@ -1,5 +1,7 @@
 package io.kestra.plugin.odoo;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +14,7 @@ import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.common.FetchType;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
+import io.kestra.core.serializers.FileSerde;
 import io.kestra.core.utils.IdUtils;
 import io.kestra.core.utils.TestsUtils;
 
@@ -350,6 +353,68 @@ class QueryTest {
         // Other fields should be null for FETCH type
         assertThat(output.getRow(), is(nullValue()));
         assertThat(output.getUri(), is(nullValue()));
+    }
+
+    @Test
+    void shouldStoreSearchReadResultsAsIonFile() throws Exception {
+        Query task = Query.builder()
+            .url(Property.ofValue("http://localhost:8069"))
+            .db(Property.ofValue("demo"))
+            .username(Property.ofValue("test@demo.com"))
+            .password(Property.ofValue("admin"))
+            .model(Property.ofValue("res.partner"))
+            .operation(Property.ofValue(Operation.SEARCH_READ))
+            .fields(Property.ofValue(Arrays.asList("name", "email")))
+            .limit(Property.ofValue(3))
+            .fetchType(Property.ofValue(FetchType.STORE))
+            .build();
+
+        Query.Output output = task.run(runContext);
+
+        assertThat(output.getUri(), is(notNullValue()));
+        assertThat(output.getRows(), is(nullValue()));
+        assertThat(output.getRow(), is(nullValue()));
+
+        List<Object> stored = readStoredRows(output);
+        assertThat(stored, is(not(empty())));
+        assertThat(output.getSize(), is(equalTo((long) stored.size())));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> firstRecord = (Map<String, Object>) stored.getFirst();
+        assertTrue(firstRecord.containsKey("id"));
+        assertTrue(firstRecord.containsKey("name"));
+    }
+
+    @Test
+    void shouldStoreSearchIdsAsIonFile() throws Exception {
+        Query task = Query.builder()
+            .url(Property.ofValue("http://localhost:8069"))
+            .db(Property.ofValue("demo"))
+            .username(Property.ofValue("test@demo.com"))
+            .password(Property.ofValue("admin"))
+            .model(Property.ofValue("res.users"))
+            .operation(Property.ofValue(Operation.SEARCH))
+            .limit(Property.ofValue(3))
+            .fetchType(Property.ofValue(FetchType.STORE))
+            .build();
+
+        Query.Output output = task.run(runContext);
+
+        assertThat(output.getUri(), is(notNullValue()));
+
+        List<Object> stored = readStoredRows(output);
+        assertThat(stored, is(not(empty())));
+        assertThat(output.getSize(), is(equalTo((long) stored.size())));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> firstRecord = (Map<String, Object>) stored.getFirst();
+        assertTrue(firstRecord.containsKey("id"));
+    }
+
+    private List<Object> readStoredRows(Query.Output output) throws Exception {
+        try (var reader = new BufferedReader(new InputStreamReader(runContext.storage().getFile(output.getUri())))) {
+            return FileSerde.readAll(reader).collectList().block();
+        }
     }
 
     @Test

@@ -1,5 +1,8 @@
 package io.kestra.plugin.odoo;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -9,17 +12,19 @@ import org.slf4j.Logger;
 
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Plugin;
+import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.tasks.RunnableTask;
 import io.kestra.core.models.tasks.Task;
 import io.kestra.core.models.tasks.common.FetchType;
 import io.kestra.core.runners.RunContext;
+import io.kestra.core.serializers.FileSerde;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import io.kestra.core.models.annotations.PluginProperty;
+import reactor.core.publisher.Flux;
 
 @SuperBuilder
 @ToString
@@ -529,12 +534,13 @@ public class Query extends Task implements RunnableTask<Query.Output> {
     /**
      * Store records as an ION file in Kestra's internal storage.
      * Returns a StoredResult containing both the URI and record count.
-     * TODO: Implement proper file storage once storage interface is clarified
      */
     private StoredResult storeRecordsAsFile(RunContext runContext, List<?> records) throws IOException {
-        // Temporary implementation - return null URI but correct count
-        // This needs to be implemented with proper storage interface
-        return new StoredResult(null, records.size());
+        File tempFile = runContext.workingDir().createTempFile(".ion").toFile();
+        try (var output = new BufferedWriter(new FileWriter(tempFile), FileSerde.BUFFER_SIZE)) {
+            FileSerde.writeAll(output, Flux.fromIterable(records)).block();
+        }
+        return new StoredResult(runContext.storage().putFile(tempFile), records.size());
     }
 
     /**
