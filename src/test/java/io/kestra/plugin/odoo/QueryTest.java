@@ -1,7 +1,5 @@
 package io.kestra.plugin.odoo;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -412,8 +410,8 @@ class QueryTest {
     }
 
     private List<Object> readStoredRows(Query.Output output) throws Exception {
-        try (var reader = new BufferedReader(new InputStreamReader(runContext.storage().getFile(output.getUri())))) {
-            return FileSerde.readAll(reader).collectList().block();
+        try (var is = runContext.storage().getFile(output.getUri())) {
+            return FileSerde.readAll(is).collectList().block();
         }
     }
 
